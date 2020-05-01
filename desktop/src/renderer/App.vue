@@ -4,51 +4,55 @@
       <ul>
         <router-link
           tag="li"
-          :to="{ path: '/ServiceCall'}"
+          :to="{ path: '/ServiceCall' }"
           active-class="is-active"
-          exact>
+          exact
+        >
           <a>Dispatch</a>
         </router-link>
         <router-link
           tag="li"
-          :to="{ path: '/'}"
+          :to="{ path: '/' }"
           active-class="is-active"
-          exact>
+          exact
+        >
           <a>History</a>
         </router-link>
         <router-link
           tag="li"
-          :to="{ path: '/'}"
+          :to="{ path: '/' }"
           active-class="is-active"
-          exact>
+          exact
+        >
           <a>Maintenance</a>
         </router-link>
         <router-link
           tag="li"
-          :to="{ path: '/Customers'}"
+          :to="{ path: '/Customers' }"
           active-class="is-active"
-          exact>
+          exact
+        >
           <a>Customers</a>
         </router-link>
         <router-link
           tag="li"
-          :to="{ path: '/'}"
+          :to="{ path: '/' }"
           active-class="is-active"
-          exact>
+          exact
+        >
           <a>Technicians</a>
         </router-link>
       </ul>
     </div>
 
     <router-view></router-view>
-
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App'
-}
+  name: "App"
+};
 </script>
 
 <style>

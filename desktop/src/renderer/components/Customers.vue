@@ -11,17 +11,15 @@
         <b-button>Remove</b-button>
       </div>
     </div>
-
-
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Customers',
+  name: "Customers",
   components: {},
   methods: {}
-}
+};
 </script>
 
 <style>

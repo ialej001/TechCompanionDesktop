@@ -1,22 +1,35 @@
-import Vue from 'vue'
-import axios from 'axios'
+import Vue from "vue";
+import axios from "axios";
+import VueLogger from "vuejs-logger";
+import App from "./App.vue";
+import router from "./router";
+import store from "./store";
+import Buefy from "buefy";
+import "buefy/dist/buefy.css";
+import "@mdi/font/css/materialdesignicons.css";
 
-import App from './App.vue'
-import router from './router'
-import store from './store'
-import Buefy from 'buefy'
-import 'buefy/dist/buefy.css'
+Vue.use(Buefy);
 
-Vue.use(Buefy)
-if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
-Vue.http = Vue.prototype.$http = axios
-Vue.config.productionTip = false
+if (!process.env.IS_WEB) Vue.use(require("vue-electron"));
+Vue.http = Vue.prototype.$http = axios;
+Vue.config.productionTip = false;
+
+const options = {
+  isEnabled: true,
+  logLevel: "debug",
+  stringifyArguments: false,
+  showLogLevel: true,
+  showMethodName: false,
+  separator: "|",
+  showConsoleColors: true
+};
+Vue.use(VueLogger, options);
 
 /* eslint-disable no-new */
 new Vue({
   // components: { App },
   router,
   store,
-  template: '<App/>',
+  template: "<App/>",
   render: h => h(App)
-}).$mount('#app')
+}).$mount("#app");

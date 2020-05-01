@@ -1,57 +1,95 @@
 <template>
-  <div>
+  <div class="container is-fluid is-mobile">
     <div class="columns is-multiline is-centered">
-      <!-- Display an empty card when no calls are logged for the particular date-->
-      <div class="column is-one-fifth">
+      <div
+        class="column is-one-fifth-fullhd is-one-quarter-desktop is-one-third-tablet"
+      >
         <div class="card">
-          <div class="card-content has-text-centered">
+          <div
+            v-if="!todaysCalls.length"
+            class="card-content has-text-centered"
+          >
             No work orders on this date
-            <br>
-            <br>
-            <b-button class="is-success is-large" @click="isNewCallModalActive = true">
+            <br />
+            <br />
+            <b-button
+              class="is-success is-large"
+              @click="isNewCallModalActive = true"
+            >
               New
             </b-button>
+          </div>
+          <div v-else class="card-content has-text-centered">
+            <br /><br />
+            Click below to add a new call
+            <br /><br />
+            <b-button
+              class="is-success is-large"
+              @click="isNewCallModalActive = true"
+            >
+              New
+            </b-button>
+            <br /><br /><br /><br />
           </div>
         </div>
       </div>
       <!-- begin card iteration for all works orders on a date-->
-      <div class="column is-one-fifth">
-        <div class="card">
+      <div
+        v-for="(call, index) in todaysCalls"
+        :key="index"
+        class="column is-one-fifth-fullhd is-one-quarter-desktop is-one-third-tablet"
+      >
+        <div class="card" v-bind:id="index">
           <div class="card-content">
-            <p class="title">
-              Contact name or property name
+            <p v-if="call.customer.propertyName" class="title">
+              {{ call.customer.propertyName }}
             </p>
-            <p class="subtitle">
-              address
+            <p v-else class="title">
+              {{ call.customer.contactName }}
             </p>
-          </div>
-          <div class="card-content">
-            <div class="content">
-              Problem description
-              <br>
-              Time dispatched
+            <p class="subtitle"></p>
+            <div v-if="call.customer.propertyName">
+              <b-icon icon="account" size="is-small"> </b-icon>
+              <span> {{ call.customer.contactName }} </span><br />
             </div>
+            <b-icon icon="phone" size="is-small"> </b-icon>
+            <span> {{ call.customer.contactPhone }} </span><br />
+            <b-icon
+              icon="office-building"
+              size="is-small"
+              v-if="call.customer.propertyType === 'Commercial'"
+            >
+            </b-icon>
+            <b-icon icon="map-marker" size="is-small"> </b-icon>
+            <span>
+              {{ call.customer.streetAddress }} <br />
+              {{ call.customer.city }}, CA
+              {{ call.customer.zipCode }}
+            </span>
           </div>
-          <footer class="card-footer">
-            <p class="card-footer-item">
-              <b-button 
-                class="is-info"
-                @click="isUpdateCallModalActive = true"
-                expanded
+          <div class="card-content">
+            <div v-for="(issue, idx) in call.issues" :key="idx" class="">
+              <b-icon icon="gate" size="is-small"> </b-icon>
+              <span> {{ issue.location }} - {{ issue.problem }} </span>
+            </div>
+            <br />
+            <b-dropdown hoverable aria-role="list">
+              <div class="block" slot="trigger">
+                <b-icon icon="dots-horizontal" size="is-small"></b-icon>
+              </div>
+
+              <b-dropdown-item
+                aria-role="listitem"
+                @click="updateModalCallDetails(index)"
+                >Update</b-dropdown-item
               >
-                Update
-              </b-button>
-            </p>
-            <p class="card-footer-item">
-              <b-button 
-                class="is-danger"
-                @click="isCancelCallModalActive = true"
-                expanded
+              <b-dropdown-item
+                @click="cancelCallModal(index)"
+                aria-role="listitem"
+                >Cancel</b-dropdown-item
               >
-                  Cancel
-              </b-button>
-            </p>
-          </footer>
+            </b-dropdown>
+          </div>
         </div>
       </div>
 
@@ -59,12 +97,11 @@
         :active.sync="isNewCallModalActive"
         has-modal-card
         trap-focus
-        aria-role="dialog"
         aria-modal
       >
         <NewCallModal
-          @close="closeNewCallModal"
-          @childToParent="onNewCallSubmit"
+          @close="closeNewCallModal()"
+          @onNewCallSubmit="onNewCallSubmit()"
         ></NewCallModal>
       </b-modal>
 
@@ -76,8 +113,12 @@
         aria-modal
       >
         <UpdateCallModal
-          @close="closeUpdateCallModal"
-          @childToParent="onUpdateCallSubmit"
+          @close="closeUpdateCallModal()"
+          @onUpdateCallSubmit="
+            onUpdateCallSubmit(response, callIndexToBeUpdated)
+          "
+          :selectedCallDetails.sync="selectedCallDetails"
+          :callIndexToBeUpdated="callIndexToBeUpdated"
         ></UpdateCallModal>
       </b-modal>
 
@@ -85,12 +126,12 @@
         :active.sync="isCancelCallModalActive"
         has-modal-card
         trap-focus
-        aria-role="dialog"
         aria-modal
       >
         <CancelCallModal
-          @close="closeCancelCallModal"
-          @childToParent="onCancelCallSubmit"
+          @close="closeCancelCallModal()"
+          @onCancelCallSubmit="onCancelCallSubmit()"
+          :callIdToBeRemoved="callIdToBeRemoved"
         ></CancelCallModal>
       </b-modal>
     </div>
@@ -98,37 +139,95 @@
 </template>
 
 <script>
+import DataService from "@/services/DataService";
 
 export default {
-  name: 'ServiceCall',
+  name: "ServiceCall",
   components: {
-    NewCallModal: require('@/components/ServiceCalls/NewCallModal.vue').default,
-    UpdateCallModal: require('@/components/ServiceCalls/UpdateCallModal.vue').default,
-    CancelCallModal: require('@/components/ServiceCalls/CancelCallModal.vue').default
+    NewCallModal: require("@/components/ServiceCalls/NewCallModal.vue").default,
+    UpdateCallModal: require("@/components/ServiceCalls/UpdateCallModal.vue")
+      .default,
+    CancelCallModal: require("@/components/ServiceCalls/CancelCallModal.vue")
+      .default
   },
-  data () {
+  data() {
     return {
-      stage: 'customer',
+      todaysCalls: [],
+      index: "",
+      selectedCallDetails: {
+        customer: {},
+        date: "",
+        descriptionOfProblem: ""
+      },
       isNewCallModalActive: false,
       isUpdateCallModalActive: false,
-      isCancelCallModalActive: false
+      isCancelCallModalActive: false,
+      callIndexToBeUpdated: "",
+      callIdToBeRemoved: ""
+    };
+  },
+  computed: {},
+  methods: {
+    closeNewCallModal: function() {
+      this.isNewCallModalActive = false;
+    },
+    closeUpdateCallModal: function() {
+      this.isUpdateCallModalActive = false;
+      this.selectedCallDetails = {
+        id: {},
+        customer: {},
+        date: "",
+        descriptionOfProblem: "",
+        techAssigned: "",
+        location: []
+      };
+    },
+    closeCancelCallModal: function() {
+      this.isCancelCallModalActive = false;
+    },
+    onNewCallSubmit: function() {
+      this.closeNewCallModal();
+      this.loadTodaysWorkOrders();
+    },
+    onUpdateCallSubmit: function() {
+      this.isUpdateCallModalActive = false;
+      this.todaysCalls.splice(
+        this.callIndexToBeUpdated,
+        1,
+        this.selectedCallDetails
+      );
+    },
+    onCancelCallSubmit: function() {
+      this.isCancelCallModalActive = false;
+      this.todaysCalls.splice(this.callIndexToBeUpdated, 1);
+    },
+    loadTodaysWorkOrders: async function() {
+      await DataService.getAllWorkOrders()
+        .then(workOrders => {
+          this.todaysCalls = workOrders.data.filter(function(item) {
+            return item.customer;
+          });
+        })
+        .catch(error => {
+          this.error = error.response.data;
+          this.todaysCalls = [];
+        });
+      console.log(this.todaysCalls);
+    },
+    updateModalCallDetails: function(index) {
+      this.selectedCallDetails = Object.assign({}, this.todaysCalls[index]);
+      this.isUpdateCallModalActive = true;
+      this.callIndexToBeUpdated = index;
+    },
+    cancelCallModal: function(index) {
+      this.isCancelCallModalActive = true;
+      this.callIdToBeRemoved = this.todaysCalls[index].string_id;
     }
   },
-  methods: {
-    closeNewCallModal: function () {
-      this.isNewCallModalActive = false
-    },
-    closeUpdateCallModal: function () {
-      this.isUpdateCallModalActive = false
-    },
-    closeCancelCallModal: function () {
-      this.isCancelCallModalActive = false
-    },
-    onNewCallSubmit: function () {},
-    onUpdateCallSubmit: function () {},
-    onCancelCallSubmit: function () {}
+  mounted() {
+    this.loadTodaysWorkOrders();
   }
-}
+};
 </script>
 
 <style scoped></style>
