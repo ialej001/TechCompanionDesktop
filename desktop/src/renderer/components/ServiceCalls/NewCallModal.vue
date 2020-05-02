@@ -10,8 +10,6 @@
           :animated="true"
           :rounded="true"
           :has-navigation="false"
-          :icon-prev="prevIcon"
-          :icon-next="nextIcon"
         >
           <b-step-item step="1" label="Call Type" :clickable="false">
             <br />
@@ -24,51 +22,80 @@
           </b-step-item>
 
           <b-step-item step="2" label="Customer" :clickable="false">
-            <b-field label="Property Name">
-              <b-input v-model="customer.propertyName"></b-input>
-            </b-field>
-            <b-field label="Property Type">
-              <b-select
-                v-model="customer.propertyType"
-                placeholder="Select one"
+            <div v-if="!hasFoundCustomer && !isNewCustomer">
+              <b-field required label="Street Address">
+                <b-input v-model="searchQuery"></b-input>
+              </b-field>
+              <b-button
+                type="is-info"
+                v-if="!isSearchingCustomer"
+                @click="searchForCustomer"
+                >Lookup</b-button
               >
-                <option value="Residential">
-                  House
-                </option>
-                <option value="Apartment">
-                  Apartment/Condo
-                </option>
-                <option value="Commerical">
-                  Business complex
-                </option>
-                <option value="Industrial">
-                  Industrial complex
-                </option>
-              </b-select>
-            </b-field>
-            <b-field required label="Street Address">
-              <b-input v-model="customer.streetAddress"></b-input>
-            </b-field>
-            <b-field required label="City">
-              <b-input v-model="customer.city"></b-input>
-            </b-field>
-            <b-field required label="Zip code">
-              <b-input v-model="customer.zipCode"></b-input>
-            </b-field>
-            <b-field required label="Primary contact">
-              <b-input v-model="customer.contactName"></b-input>
-            </b-field>
-            <b-field required label="Phone number">
-              <b-input v-model="customer.contactPhone"></b-input>
-            </b-field>
-            <b-field label="Email">
-              <b-input v-model="customer.contactEmail"></b-input>
-            </b-field>
-            <p class="has-text-danger is-italic">{{ errors.lookupError }}</p>
+              <b-button
+                type="is-success"
+                v-if="errors.lookupError"
+                @click="(isNewCustomer = !isNewCustomer), (customerIndex = 0)"
+                >Create</b-button
+              >
+              <b-button v-if="isSearchingCustomer" loading></b-button>
+              <p class="has-text-danger is-italic">{{ errors.lookupError }}</p>
+            </div>
+            <div v-if="isNewCustomer">
+              <b-field label="Property Name">
+                <b-input v-model="customers[0].propertyName"></b-input>
+              </b-field>
+              <b-field label="Property Type">
+                <b-select
+                  v-model="customers[0].propertyType"
+                  placeholder="Select one"
+                >
+                  <option value="Residential">
+                    House
+                  </option>
+                  <option value="Apartment">
+                    Apartment/Condo
+                  </option>
+                  <option value="Commerical">
+                    Business complex
+                  </option>
+                  <option value="Industrial">
+                    Industrial complex
+                  </option>
+                </b-select>
+              </b-field>
+              <b-field required label="Street Address">
+                <b-input v-model="customers[0].streetAddress"></b-input>
+              </b-field>
+              <b-field required label="City">
+                <b-input v-model="customers[0].city"></b-input>
+              </b-field>
+              <b-field required label="Zip code">
+                <b-input v-model="customers[0].zipCode"></b-input>
+              </b-field>
+              <b-field required label="Primary contact">
+                <b-input v-model="customers[0].contactName"></b-input>
+              </b-field>
+              <b-field required label="Phone number">
+                <b-input v-model="customers[0].contactPhone"></b-input>
+              </b-field>
+              <b-field label="Email">
+                <b-input v-model="customers[0].contactEmail"></b-input>
+              </b-field>
+            </div>
+            <div v-if="hasFoundCustomer">
+              <div v-for="(customer, index) in customers" :key="index">
+                <p>Which customer?</p>
+                <div>
+                  <b-button @click="setCustomerIndex(index)">Use</b-button>
+                  <span>{{ customer.serviceAddress }}</span>
+                </div>
+              </div>
+            </div>
           </b-step-item>
 
           <b-step-item
-            v-if="!isNewCustomer"
+            v-if="isNewCustomer"
             step="3"
             label="Location"
             :clickable="false"
@@ -94,11 +121,17 @@
             </div>
           </b-step-item>
 
-          <b-step-item v-else step="3" label="Location" :clickable="false">
+          <b-step-item
+            v-if="customerIndex != -1"
+            step="3"
+            label="Location"
+            :clickable="false"
+          >
             <b-field label="Gate location">
               <b-select v-model="locationToAdd">
                 <option
-                  v-for="(location, index) in customer.gateLocations"
+                  v-for="(location, index) in customers[customerIndex]
+                    .gateLocations"
                   :value="location"
                   :key="index"
                 >
@@ -145,21 +178,6 @@
             Close
           </b-button>
           <b-button
-            type="is-info"
-            v-if="
-              activeStep == 1 && !isSearchingCustomer && !errors.lookupError
-            "
-            @click="searchForCustomer"
-            >Lookup</b-button
-          >
-          <b-button
-            type="is-danger"
-            disabled
-            v-if="activeStep == 1 && errors.lookupError"
-            >Not Found</b-button
-          >
-          <b-button v-if="isSearchingCustomer" loading></b-button>
-          <b-button
             v-if="activeStep == 3 && !isSendingData"
             type="is-success"
             native-type="submit"
@@ -197,19 +215,13 @@ export default {
       callType: "",
       isSearchingCustomer: false,
       isNewCustomer: false,
+      hasFoundCustomer: false,
+      searchQuery: "",
       errors: {
         lookupError: ""
       },
-      customer: {
-        _id: {},
-        streetAddress: "",
-        city: "",
-        zipCode: "",
-        contactName: "",
-        contactNumber: "",
-        contactEmail: "",
-        gateLocations: []
-      },
+      customers: [],
+      customerIndex: -1,
       techAssigned: "",
       issues: [],
       isSendingData: false,
@@ -243,21 +255,38 @@ export default {
     searchForCustomer: async function() {
       this.isSearchingCustomer = true;
       await DataService.searchForCustomer({
-        serviceAddress:
-          this.streetAddress + " " + this.city + ", CA " + this.zipCode
-      })
-        .then(response => {
-          this.customer = Object.assign({}, response.data.customer);
-          // copy by value for the following structures
-          this.customer._id = Object.assign({}, response.data.customer._id);
-          this.customer.locations = response.data.customer.gateLocations.slice();
-        })
-        .catch(error => {
-          console.log(error.response.status);
+        streetAddress: this.searchQuery
+      }).then(response => {
+        const customers = response.data;
+        // if customers is empty, no match found
+        if (customers.length == 0) {
           this.isSearchingCustomer = false;
+          this.isNewCustomer = false;
+          this.hasFoundCustomer = false;
           this.errors.lookupError =
-            "No customer found. Will create a new record on dispatch.";
-        });
+            "No customer found. Check your query for typos or create a new customer record.";
+          // create the customer skeleton
+          this.customers.push({
+            propertyName: "",
+            propertyType: "",
+            streetAddress: "",
+            city: "",
+            zipCode: "",
+            serviceAddress: "",
+            contactName: "",
+            contactPhone: "",
+            contactEmail: "",
+            gateLocations: []
+          });
+        } else {
+          customers.forEach(customer => {
+            this.customers.push(customer);
+          });
+          this.isSearchingCustomer = false;
+          this.isNewCustomer = false;
+          this.hasFoundCustomer = true;
+        }
+      });
     },
     addToDatabase: async function() {
       this.isSendingData = true;
@@ -265,7 +294,7 @@ export default {
       switch (this.callType) {
         case "workOrder":
           callToBeDispatched = {
-            customer: this.customer,
+            customer: this.customers[this.customerIndex],
             techAssigned: this.techAssigned,
             issues: this.issues
           };
@@ -281,8 +310,10 @@ export default {
       }
     },
     updateIssue: function() {
-      if (!this.customer.gateLocations.includes(this.locationToAdd)) {
-        this.customer.gateLocations.push(this.locationToAdd);
+      let customer = this.customers[this.customerIndex];
+      console.log(customer);
+      if (!customer.gateLocations.includes(this.locationToAdd)) {
+        customer.gateLocations.push(this.locationToAdd);
       }
       this.issues.push({
         location: this.locationToAdd,
@@ -290,6 +321,10 @@ export default {
       });
       this.locationToAdd = "";
       this.descriptionToAdd = "";
+    },
+    setCustomerIndex: function(index) {
+      console.log("click", index);
+      this.customerIndex = index;
     }
   }
 };
