@@ -22,5 +22,20 @@ export default {
   cancelWorkOrder(id) {
     console.log(`api/work-order/${id}`);
     return Api().delete(`api/work-order/${id}`);
+  },
+
+  gqlGetWorkOrders() {
+    try {
+      let = result = await Api().post("api/graphql", {
+        data: {
+          query:{
+
+          }
+        }
+      })
+    }
+    catch {
+      
+    }
   }
 };

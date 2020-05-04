@@ -122,7 +122,7 @@
           </b-step-item>
 
           <b-step-item
-            v-if="customerIndex != -1"
+            v-else-if="customerIndex != -1"
             step="3"
             label="Location"
             :clickable="false"
