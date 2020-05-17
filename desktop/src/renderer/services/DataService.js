@@ -4,6 +4,17 @@ export default {
   searchForCustomer(serviceAddress) {
     return Api().post("api/findCustomer", serviceAddress);
   },
+
+  getCustomers() {
+    return Api().get("api/customers", {
+      transformResponse: [
+        function(data) {
+          return data ? JSON.parse(data) : data;
+        }
+      ]
+    });
+  },
+
   getAllWorkOrders() {
     return Api().get("api/all", {
       transformResponse: [
@@ -13,29 +24,17 @@ export default {
       ]
     });
   },
+
   dispatchWorkOrder(customerInfo) {
     return Api().post("api/dispatch/work-order", customerInfo);
   },
+
   updateWorkOrder(customerInfo, id) {
     return Api().put(`api/update/${id}`, customerInfo);
   },
+
   cancelWorkOrder(id) {
     console.log(`api/work-order/${id}`);
     return Api().delete(`api/work-order/${id}`);
-  },
-
-  gqlGetWorkOrders() {
-    try {
-      let = result = await Api().post("api/graphql", {
-        data: {
-          query:{
-
-          }
-        }
-      })
-    }
-    catch {
-      
-    }
   }
 };

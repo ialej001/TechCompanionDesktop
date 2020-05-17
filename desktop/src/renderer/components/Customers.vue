@@ -1,24 +1,116 @@
 <template>
   <div>
-    <div class="columns">
-      <div class="column is-narrow">
-        <b-button>New</b-button>
-      </div>
-      <div class="column is-narrow">
-        <b-button>Update</b-button>
-      </div>
-      <div class="column is-narrow">
-        <b-button>Remove</b-button>
-      </div>
+    <div class="container">
+      <b-button class="button is-success is-large" @click="onNew"
+        ><b-icon icon="plus"></b-icon><span>New</span></b-button
+      >
+      <b-button
+        class="button is-info is-large"
+        @click="onEdit"
+        :disabled="!customer"
+        ><b-icon icon="pencil"></b-icon><span>Edit</span></b-button
+      >
+      <b-button
+        v-if="customer"
+        class="button field is-danger is-large"
+        @click="customer = null"
+        ><b-icon icon="close"></b-icon><span>Clear selected</span></b-button
+      >
+
+      <b-table
+        :data="customers"
+        :columns="columns"
+        :paginated="true"
+        :per-page="perPage"
+        :current-page.sync="currentPage"
+        default-sort="streetAddress"
+        :selected.sync="customer"
+      >
+        <b-input
+          slot="searchable"
+          slot-scope="props"
+          v-model="props.filters[props.column.field]"
+          placeholder="Search..."
+          icon="magnify"
+          size="is-small"
+        />
+      </b-table>
     </div>
+    <b-modal :active.sync="isEditActive" has-modal-card trap-focus aria-modal>
+      <EditCustomer
+        @close="closeEditModal()"
+        @onNewCallSubmit="onEditSubmit()"
+        :customer="customer"
+      ></EditCustomer>
+    </b-modal>
   </div>
 </template>
 
 <script>
+import DataService from "@/services/DataService";
+
 export default {
   name: "Customers",
-  components: {},
-  methods: {}
+  data() {
+    return {
+      total: 200,
+      perPage: 20,
+      currentPage: 1,
+      customer: null,
+      tab: 0,
+      customers: [],
+      columns: [
+        {
+          field: "propertyName",
+          label: "Property Name",
+          searchable: true,
+          sortable: true
+        },
+        {
+          field: "streetAddress",
+          label: "Street Address",
+          searchable: true,
+          sortable: true
+        },
+        {
+          field: "city",
+          label: "City",
+          searchable: true,
+          sortable: true
+        }
+      ],
+      isEditActive: false
+    };
+  },
+  components: {
+    EditCustomer: require("@/components/Customers/EditCustomer.vue").default
+  },
+  methods: {
+    getCustomers: function() {
+      DataService.getCustomers().then(customers => {
+        this.customers = customers.data;
+        console.log(this.customers);
+        this.total = this.customers.length;
+      });
+    },
+    onNew: function() {},
+    onEdit: function() {
+      this.isEditActive = true;
+      if (this.customer.gateDetails == null) {
+        this.customer.gateDetails = [];
+      }
+      console.log(this.customer);
+    },
+    onDelete(customer) {
+      console.log(customer);
+    },
+    closeEditModal: function() {
+      this.isEditActive = false;
+    }
+  },
+  mounted() {
+    this.getCustomers();
+  }
 };
 </script>
 

@@ -259,6 +259,7 @@ export default {
       }).then(response => {
         const customers = response.data;
         // if customers is empty, no match found
+        console.log(customers);
         if (customers.length == 0) {
           this.isSearchingCustomer = false;
           this.isNewCustomer = false;
@@ -315,6 +316,8 @@ export default {
       if (!customer.gateLocations.includes(this.locationToAdd)) {
         customer.gateLocations.push(this.locationToAdd);
       }
+      if (this.locationToAdd == "" || this.descriptionToAdd == "") return;
+
       this.issues.push({
         location: this.locationToAdd,
         problem: this.descriptionToAdd
