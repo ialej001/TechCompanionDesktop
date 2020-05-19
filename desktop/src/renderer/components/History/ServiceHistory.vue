@@ -1,30 +1,16 @@
 <template>
   <div>
     <div class="container">
-      <b-button class="button is-success is-large" @click="onNew"
-        ><b-icon icon="plus"></b-icon><span>New</span></b-button
-      >
-      <b-button
-        class="button is-info is-large"
-        @click="onEdit"
-        :disabled="!selected"
-        ><b-icon icon="pencil"></b-icon><span>Edit</span></b-button
-      >
-      <b-button
-        v-if="selected && !isNew"
-        class="button field is-danger is-large"
-        @click="selected = null"
-        ><b-icon icon="close"></b-icon><span>Clear selected</span></b-button
-      >
-
       <b-table
-        :data="customers"
+        :data="workOrders"
         :columns="columns"
         :paginated="true"
         :per-page="perPage"
         :current-page.sync="currentPage"
         default-sort="streetAddress"
-        :selected.sync="selected"
+        hoverable
+        detailed
+        detail-key="string_id"
       >
         <b-input
           slot="searchable"
@@ -34,17 +20,30 @@
           icon="magnify"
           size="is-small"
         />
+        <template slot="detail" slot-scope="props">
+          <div>
+            <article class="panel is-link">
+              <p class="panel-tabs">
+                <a :class="[tab === 0 ? 'is-active' : '']" @click="tab = 0"
+                  >Work Completed</a
+                >
+                <a :class="[tab === 1 ? 'is-active' : '']" @click="tab = 1"
+                  >Parts Used</a
+                >
+                <a :class="[tab === 2 ? 'is-active' : '']" @click="tab = 2"
+                  >Charges</a
+                >
+              </p>
+              <div class="panel-block" v-if="tab === 0">
+                {{ props.row.customer.serviceAddress }}
+              </div>
+              <div class="panel-block" v-if="tab === 1"></div>
+              <div class="panel-block" v-if="tab === 2"></div>
+            </article>
+          </div>
+        </template>
       </b-table>
     </div>
-    <b-modal :active.sync="isEditActive" has-modal-card trap-focus aria-modal>
-      <EditCustomer
-        @close="closeEditModal()"
-        @onNewCallSubmit="onEditSubmit()"
-        @onEditSubmit="onEditSubmit()"
-        :customer="customer"
-        :isNew="isNew"
-      ></EditCustomer>
-    </b-modal>
   </div>
 </template>
 
@@ -58,29 +57,28 @@ export default {
       total: 200,
       perPage: 20,
       currentPage: 1,
-      selected: null,
-      customer: {},
+      customer: null,
       tab: 0,
-      customers: [],
+      workOrders: [],
       columns: [
         {
-          field: "propertyName",
-          label: "Property Name",
+          field: "customer.serviceAddress",
+          label: "Full Address",
           searchable: true,
           sortable: true
         },
         {
-          field: "streetAddress",
-          label: "Street Address",
-          searchable: true,
-          sortable: true
-        },
-        {
-          field: "city",
-          label: "City",
+          field: "techAssigned",
+          label: "Technician",
           searchable: true,
           sortable: true
         }
+        // {
+        //   field: "city",
+        //   label: "City",
+        //   searchable: true,
+        //   sortable: true
+        // }
       ],
       isEditActive: false,
       isNew: false
@@ -90,52 +88,25 @@ export default {
     EditCustomer: require("@/components/Customers/EditCustomer.vue").default
   },
   methods: {
-    getCustomers: function() {
-      DataService.getCustomers().then(customers => {
-        this.customers = customers.data;
-        console.log(this.customers);
-        this.total = this.customers.length;
+    getWorkOrders: function() {
+      DataService.getAllWorkOrders().then(workOrders => {
+        this.workOrders = workOrders.data;
+        console.log(this.workOrders);
+        this.total = this.workOrders.length;
       });
-    },
-    onNew: function() {
-      this.customer = {};
-      this.isNew = true;
-      this.isEditActive = true;
-    },
-    onEdit: function() {
-      if (this.customer.gateDetails == null) {
-        this.customer.gateDetails = [];
-      }
-      if (this.isNew) {
-        this.customer = {
-          propertyName: "",
-          propertyType: "",
-          streetAddress: "",
-          city: "",
-          zipCode: null,
-          contactName: "",
-          contactPhone: "",
-          contactEmail: "",
-          billingMethod: "",
-          gateDetails: []
-        };
-      } else {
-        this.customer = Object.assign({}, this.selected);
-      }
-      this.isEditActive = true;
-      console.log(this.customer);
-    },
-    onDelete(customer) {
-      console.log(customer);
     },
     closeEditModal: function() {
       this.isEditActive = false;
-      this.selected = null;
+      this.customer = null;
       this.isNew = false;
+    },
+    toggle: function(row) {
+      this.$refs.table.toggleDetails(row);
+      //   this.$refs.table.
     }
   },
   mounted() {
-    this.getCustomers();
+    this.getWorkOrders();
   }
 };
 </script>

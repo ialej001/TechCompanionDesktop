@@ -24,7 +24,7 @@
           <b-step-item step="2" label="Customer" :clickable="false">
             <div v-if="!hasFoundCustomer && !isNewCustomer">
               <b-field required label="Street Address">
-                <b-input v-model="searchQuery"></b-input>
+                <b-input v-model="searchQuery" value="searchQuery"></b-input>
               </b-field>
               <b-button
                 type="is-info"
@@ -270,7 +270,7 @@ export default {
           this.customers.push({
             propertyName: "",
             propertyType: "",
-            streetAddress: "",
+            streetAddress: this.searchQuery,
             city: "",
             zipCode: "",
             serviceAddress: "",
@@ -311,12 +311,13 @@ export default {
       }
     },
     updateIssue: function() {
+      if (this.locationToAdd == "" || this.descriptionToAdd == "") return;
+
       let customer = this.customers[this.customerIndex];
       console.log(customer);
       if (!customer.gateLocations.includes(this.locationToAdd)) {
         customer.gateLocations.push(this.locationToAdd);
       }
-      if (this.locationToAdd == "" || this.descriptionToAdd == "") return;
 
       this.issues.push({
         location: this.locationToAdd,

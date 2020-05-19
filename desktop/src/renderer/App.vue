@@ -12,7 +12,7 @@
         </router-link>
         <router-link
           tag="li"
-          :to="{ path: '/' }"
+          :to="{ path: '/History' }"
           active-class="is-active"
           exact
         >

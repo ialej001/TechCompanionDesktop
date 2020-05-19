@@ -9,7 +9,7 @@
             v-if="!todaysCalls.length"
             class="card-content has-text-centered"
           >
-            No work orders on this date
+            No open work orders
             <br />
             <br />
             <b-button
@@ -162,7 +162,7 @@ export default {
       isNewCallModalActive: false,
       isUpdateCallModalActive: false,
       isCancelCallModalActive: false,
-      callIndexToBeUpdated: "",
+      callIndexToBeUpdated: null,
       callIdToBeRemoved: ""
     };
   },
@@ -196,6 +196,7 @@ export default {
         1,
         this.selectedCallDetails
       );
+      console.log("updated: " + this.todaysCalls);
     },
     onCancelCallSubmit: function() {
       this.isCancelCallModalActive = false;
@@ -217,6 +218,7 @@ export default {
     updateModalCallDetails: function(index) {
       this.selectedCallDetails = Object.assign({}, this.todaysCalls[index]);
       this.isUpdateCallModalActive = true;
+      console.log(typeof index);
       this.callIndexToBeUpdated = index;
     },
     cancelCallModal: function(index) {

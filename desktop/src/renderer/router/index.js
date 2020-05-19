@@ -21,6 +21,11 @@ export default new Router({
       component: require("@/components/Customers.vue").default
     },
     {
+      path: "/History",
+      name: "History",
+      component: require("@/components/History/ServiceHistory.vue").default
+    },
+    {
       path: "*",
       redirect: "/"
     }

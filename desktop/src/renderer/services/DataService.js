@@ -15,6 +15,14 @@ export default {
     });
   },
 
+  updateCustomer(customerInfo, id) {
+    return Api().put(`api/customer/${id}`, customerInfo);
+  },
+
+  deleteCustomer(id) {
+    return Api().delete(`api/customer/${id}`);
+  },
+
   getAllWorkOrders() {
     return Api().get("api/all", {
       transformResponse: [
@@ -34,7 +42,6 @@ export default {
   },
 
   cancelWorkOrder(id) {
-    console.log(`api/work-order/${id}`);
     return Api().delete(`api/work-order/${id}`);
   }
 };

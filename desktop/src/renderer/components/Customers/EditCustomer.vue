@@ -1,7 +1,19 @@
 <template>
   <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">{{ title }}</p>
+      <span v-if="!isNew"
+        ><b-button
+          class="button is-danger"
+          @click="confirmCustomDelete"
+          v-if="!isDeleting"
+          ><b-icon icon="delete"></b-icon></b-button
+        ><b-button v-else @click="isDeleting = false"
+          ><b-icon icon="close"></b-icon></b-button
+      ></span>
+    </header>
     <section class="modal-card-body">
-      <article class="panel" v-if="customer != null">
+      <article class="panel">
         <p class="panel-tabs">
           <a :class="[tab === 0 ? 'is-active' : '']" @click="tab = 0"
             >Property</a
@@ -80,22 +92,14 @@
           </div>
         </div>
         <div class="panel-block" v-if="tab === 2">
-          <!-- <b-field label="Gate location">
-            <b-select
-              v-model="selectedLocation"
-              v-on:change="locationEdit"
-              placeholder="Select one"
-            >
-              <option
-                v-for="(location, index) in customer.gateLocations"
-                :key="index"
-                :value="location"
-              >
-                {{ location }}
-              </option>
-            </b-select>
-          </b-field> -->
+          <b-button @click="newLocation = true"
+            ><b-icon icon="plus"></b-icon
+          ></b-button>
+          <div v-if="newLocation">
+            add location
+          </div>
           <b-table
+            v-if="customer.gateDetails"
             :data="customer.gateDetails"
             :opened-detailed="defaultOpenedDetails"
             detailed
@@ -110,18 +114,17 @@
           </b-table>
         </div>
       </article>
-
-      <div v-else>
-        No customer selected
-      </div>
     </section>
     <footer class="modal-card-foot">
       <div>
         <b-button @click="close">Close</b-button>
       </div>
       <div>
-        <b-button style="margin-right: 10px" type="is-success" @click="update"
-          >Update</b-button
+        <b-button
+          style="margin-right: 10px"
+          type="is-success"
+          @click="submit"
+          >{{ submitButtonLabel }}</b-button
         >
       </div>
     </footer>
@@ -129,9 +132,15 @@
 </template>
 
 <script>
+import DataService from "@/services/DataService";
+
 export default {
   name: "EditCustomer",
   props: {
+    isNew: {
+      type: Boolean,
+      required: true
+    },
     customer: {
       type: Object,
       required: true
@@ -139,9 +148,23 @@ export default {
   },
   data() {
     return {
+      title: this.isNew ? "Add Customer" : "Edit Customer",
       tab: 0,
+      newCustomer: null,
+      newLocation: false,
+      location: {
+        location: "",
+        accessCodes: "",
+        operator1: "",
+        operator2: "",
+        gateType1: "",
+        gateType2: "",
+        isMasterSlave: false
+      },
       selectedLocation: null,
-      defaultOpenedDetails: [1]
+      defaultOpenedDetails: [1],
+      isDeleting: false,
+      submitButtonLabel: this.isNew ? "Create" : "Update"
     };
   },
   methods: {
@@ -152,7 +175,43 @@ export default {
     close: function() {
       this.$emit("close");
     },
-    update: function() {}
+    onDelete: function() {
+      this.isDeleting = true;
+    },
+    confirmCustomDelete() {
+      this.$buefy.dialog.confirm({
+        title: "Deleting account",
+        message:
+          "Are you sure you want to <b>delete</b> this account? This action cannot be undone.",
+        confirmText: "Delete Account",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm: async () => {
+          this.close();
+          await DataService.deleteCustomer(this.customer.string_id)
+            .then(() => {
+              this.$buefy.toast.open("Account deleted!");
+            })
+            .catch(() => {
+              this.$buefy.toast.open("Something bad happened");
+            });
+        }
+      });
+    },
+    submit: function() {
+      if (this.isNew) {
+        this.onNewSubmit();
+        return;
+      }
+      this.onEditSubmit();
+    },
+    onEditSubmit: async function() {
+      console.log(this.customer.city);
+      await DataService.updateCustomer(this.customer, this.customer.string_id);
+    },
+    onNewSubmit: function() {
+      console.log("new");
+    }
   }
 };
 </script>

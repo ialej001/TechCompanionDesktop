@@ -55,6 +55,8 @@
           </b-step-item>
 
           <b-step-item step="2" label="Location" :clickable="true">
+            <b-table :data="customer.gateDetails" :columns="issueColumns">
+            </b-table>
             <b-field label="Gate location">
               <b-input></b-input>
             </b-field>
@@ -113,7 +115,13 @@ export default {
       error: null,
       customer: Object.assign({}, this.selectedCallDetails.customer),
       callToBeUpdated: Object.assign({}, this.selectedCallDetails),
-      string_id: this.selectedCallDetails.string_id
+      string_id: this.selectedCallDetails.string_id,
+      issueColumns: [
+        {
+          field: "location",
+          label: "Gate location"
+        }
+      ]
     };
   },
   methods: {
