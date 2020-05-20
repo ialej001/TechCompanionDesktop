@@ -1,6 +1,10 @@
 import Api from "@/services/Api";
 
 export default {
+  createCustomer(customer) {
+    return Api().post("api/customer/new", customer);
+  },
+
   searchForCustomer(serviceAddress) {
     return Api().post("api/findCustomer", serviceAddress);
   },

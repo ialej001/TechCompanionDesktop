@@ -22,32 +22,50 @@
           </b-step-item>
 
           <b-step-item step="2" label="Customer" :clickable="false">
-            <div v-if="!hasFoundCustomer && !isNewCustomer">
-              <b-field required label="Street Address">
-                <b-input v-model="searchQuery" value="searchQuery"></b-input>
-              </b-field>
-              <b-button
-                type="is-info"
-                v-if="!isSearchingCustomer"
-                @click="searchForCustomer"
-                >Lookup</b-button
-              >
-              <b-button
-                type="is-success"
-                v-if="errors.lookupError"
-                @click="(isNewCustomer = !isNewCustomer), (customerIndex = 0)"
-                >Create</b-button
-              >
-              <b-button v-if="isSearchingCustomer" loading></b-button>
-              <p class="has-text-danger is-italic">{{ errors.lookupError }}</p>
+            <div
+              v-if="!hasFoundCustomer"
+              class="columns is-vcentered is-multiline"
+            >
+              <div class="column is-11">
+                <b-field label="Customer search" label-position="on-border">
+                  <b-autocomplete
+                    v-model="address"
+                    :data="filteredAddresses"
+                    placeholder="Type an address"
+                    icon="magnify"
+                    clearable
+                    @select="option => (selected = addresses.indexOf(option))"
+                  >
+                    <template slot="empty">No results found</template>
+                  </b-autocomplete>
+                </b-field>
+              </div>
+              <div class="column is-1">
+                <b-button @click="(selected = null), (address = '')"
+                  ><b-icon icon="close"></b-icon
+                ></b-button>
+              </div>
+              <div class="column is-12" v-if="selected != null">
+                <b-button
+                  type="is-info"
+                  v-if="selected >= 0"
+                  @click="useSelectedCustomer()"
+                  >Use selected</b-button
+                >
+              </div>
+              <div class="column is-12" v-else>
+                <b-button type="is-success" @click="createNewCustomer()"
+                  >New customer</b-button
+                >
+              </div>
             </div>
-            <div v-if="isNewCustomer">
+            <div v-else>
               <b-field label="Property Name">
-                <b-input v-model="customers[0].propertyName"></b-input>
+                <b-input v-model="customer.propertyName"></b-input>
               </b-field>
               <b-field label="Property Type">
                 <b-select
-                  v-model="customers[0].propertyType"
+                  v-model="customer.propertyType"
                   placeholder="Select one"
                 >
                   <option value="Residential">
@@ -65,37 +83,28 @@
                 </b-select>
               </b-field>
               <b-field required label="Street Address">
-                <b-input v-model="customers[0].streetAddress"></b-input>
+                <b-input v-model="customer.streetAddress"></b-input>
               </b-field>
               <b-field required label="City">
-                <b-input v-model="customers[0].city"></b-input>
+                <b-input v-model="customer.city"></b-input>
               </b-field>
               <b-field required label="Zip code">
-                <b-input v-model="customers[0].zipCode"></b-input>
+                <b-input v-model="customer.zipCode"></b-input>
               </b-field>
               <b-field required label="Primary contact">
-                <b-input v-model="customers[0].contactName"></b-input>
+                <b-input v-model="customer.contactName"></b-input>
               </b-field>
               <b-field required label="Phone number">
-                <b-input v-model="customers[0].contactPhone"></b-input>
+                <b-input v-model="customer.contactPhone"></b-input>
               </b-field>
               <b-field label="Email">
-                <b-input v-model="customers[0].contactEmail"></b-input>
+                <b-input v-model="customer.contactEmail"></b-input>
               </b-field>
-            </div>
-            <div v-if="hasFoundCustomer">
-              <div v-for="(customer, index) in customers" :key="index">
-                <p>Which customer?</p>
-                <div>
-                  <b-button @click="setCustomerIndex(index)">Use</b-button>
-                  <span>{{ customer.serviceAddress }}</span>
-                </div>
-              </div>
             </div>
           </b-step-item>
 
           <b-step-item
-            v-if="isNewCustomer"
+            v-if="!hasFoundCustomer"
             step="3"
             label="Location"
             :clickable="false"
@@ -121,17 +130,11 @@
             </div>
           </b-step-item>
 
-          <b-step-item
-            v-else-if="customerIndex != -1"
-            step="3"
-            label="Location"
-            :clickable="false"
-          >
+          <b-step-item v-else step="3" label="Location" :clickable="false">
             <b-field label="Gate location">
               <b-select v-model="locationToAdd">
                 <option
-                  v-for="(location, index) in customers[customerIndex]
-                    .gateLocations"
+                  v-for="(location, index) in locations"
                   :value="location"
                   :key="index"
                 >
@@ -209,6 +212,14 @@ import DataService from "@/services/DataService";
 
 export default {
   name: "NewCallModal",
+  props: {
+    customers: {
+      type: Array
+    }
+  },
+  components: {
+    EditCustomer: require("@/components/Customers/EditCustomer.vue").default
+  },
   data() {
     return {
       activeStep: 0,
@@ -220,7 +231,7 @@ export default {
       errors: {
         lookupError: ""
       },
-      customers: [],
+      customer: {},
       customerIndex: -1,
       techAssigned: "",
       issues: [],
@@ -237,7 +248,9 @@ export default {
           id: 2,
           name: "jorge"
         }
-      ]
+      ],
+      selected: null,
+      address: ""
     };
   },
   methods: {
@@ -252,43 +265,67 @@ export default {
     closeModal: function() {
       this.$emit("close");
     },
-    searchForCustomer: async function() {
-      this.isSearchingCustomer = true;
-      await DataService.searchForCustomer({
-        streetAddress: this.searchQuery
-      }).then(response => {
-        const customers = response.data;
-        // if customers is empty, no match found
-        console.log(customers);
-        if (customers.length == 0) {
-          this.isSearchingCustomer = false;
-          this.isNewCustomer = false;
-          this.hasFoundCustomer = false;
-          this.errors.lookupError =
-            "No customer found. Check your query for typos or create a new customer record.";
-          // create the customer skeleton
-          this.customers.push({
-            propertyName: "",
-            propertyType: "",
-            streetAddress: this.searchQuery,
-            city: "",
-            zipCode: "",
-            serviceAddress: "",
-            contactName: "",
-            contactPhone: "",
-            contactEmail: "",
-            gateLocations: []
-          });
-        } else {
-          customers.forEach(customer => {
-            this.customers.push(customer);
-          });
-          this.isSearchingCustomer = false;
-          this.isNewCustomer = false;
-          this.hasFoundCustomer = true;
-        }
-      });
+    useSelectedCustomer: function() {
+      this.customer = Object.assign({}, this.customers[this.selected]);
+      this.setCustomerIndex(this.selected);
+      this.hasFoundCustomer = true;
+      this.activeStep++;
     },
+    createNewCustomer: function() {
+      this.isNewCustomer = true;
+      this.customer = Object.assign(
+        {},
+        {
+          propertyName: "",
+          propertyType: "",
+          streetAddress: "",
+          city: "",
+          zipCode: "",
+          serviceAddress: "",
+          contactName: "",
+          contactPhone: "",
+          contactEmail: "",
+          gateDetails: []
+        }
+      );
+    },
+    // searchForCustomer: async function() {
+    //   this.isSearchingCustomer = true;
+    //   await DataService.searchForCustomer({
+    //     streetAddress: this.searchQuery
+    //   }).then(response => {
+    //     const customers = response.data;
+    //     // if customers is empty, no match found
+    //     console.log(customers);
+    //     if (customers.length == 0) {
+    //       this.isSearchingCustomer = false;
+    //       this.isNewCustomer = false;
+    //       this.hasFoundCustomer = false;
+    //       this.errors.lookupError =
+    //         "No customer found. Check your query for typos or create a new customer record.";
+    //       // create the customer skeleton
+    //       this.customers.push({
+    //         propertyName: "",
+    //         propertyType: "",
+    //         streetAddress: this.searchQuery,
+    //         city: "",
+    //         zipCode: "",
+    //         serviceAddress: "",
+    //         contactName: "",
+    //         contactPhone: "",
+    //         contactEmail: "",
+    //         gateDetails: []
+    //       });
+    //     } else {
+    //       customers.forEach(customer => {
+    //         this.customers.push(customer);
+    //       });
+    //       this.isSearchingCustomer = false;
+    //       this.isNewCustomer = false;
+    //       this.hasFoundCustomer = true;
+    //     }
+    //   });
+    // },
     addToDatabase: async function() {
       this.isSendingData = true;
       let callToBeDispatched = {};
@@ -314,21 +351,71 @@ export default {
       if (this.locationToAdd == "" || this.descriptionToAdd == "") return;
 
       let customer = this.customers[this.customerIndex];
-      console.log(customer);
-      if (!customer.gateLocations.includes(this.locationToAdd)) {
-        customer.gateLocations.push(this.locationToAdd);
+
+      // search through gateDetails and set an index if the pending location is found
+      let indexToModify = -1;
+      customer.gateDetails.forEach((detail, index) => {
+        if (detail.location.localeCompare(this.locationToAdd)) {
+          indexToModify = index;
+        }
+      });
+
+      // if not found, create new gateDetails object
+      if (indexToModify != -1) {
+        customer.gateDetails.push({
+          location: this.locationToAdd,
+          accessCodes: "",
+          operator1: "",
+          operator2: "",
+          gateType1: "",
+          gateType2: "",
+          isMasterSlave: false
+        });
       }
 
       this.issues.push({
         location: this.locationToAdd,
-        problem: this.descriptionToAdd
+        problem: this.descriptionToAdd,
+        resolution: null
       });
+
       this.locationToAdd = "";
       this.descriptionToAdd = "";
     },
     setCustomerIndex: function(index) {
       console.log("click", index);
       this.customerIndex = index;
+    }
+  },
+  computed: {
+    addresses: function() {
+      let addresses = [];
+      this.customers.forEach(customer => {
+        addresses.push(customer.serviceAddress);
+      });
+      return addresses;
+    },
+    locations: function() {
+      let locations = [];
+      console.log("after select");
+      console.log(this.customers);
+      console.log(this.customerIndex);
+      console.log(this.customers[this.customerIndex]);
+      this.customers[this.customerIndex].gateDetails.forEach(detail => {
+        locations.push(detail.location);
+      });
+
+      return locations;
+    },
+    filteredAddresses: function() {
+      return this.addresses.filter(option => {
+        return (
+          option
+            .toString()
+            .toLowerCase()
+            .indexOf(this.address.toLowerCase()) >= 0
+        );
+      });
     }
   }
 };

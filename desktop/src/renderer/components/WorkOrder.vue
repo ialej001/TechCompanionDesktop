@@ -102,6 +102,7 @@
         <NewCallModal
           @close="closeNewCallModal()"
           @onNewCallSubmit="onNewCallSubmit()"
+          :customers="customers"
         ></NewCallModal>
       </b-modal>
 
@@ -153,6 +154,7 @@ export default {
   data() {
     return {
       todaysCalls: [],
+      customers: [],
       index: "",
       selectedCallDetails: {
         customer: {},
@@ -213,7 +215,15 @@ export default {
           this.error = error.response.data;
           this.todaysCalls = [];
         });
-      console.log(this.todaysCalls);
+    },
+    loadCustomers: async function() {
+      await DataService.getCustomers()
+        .then(result => {
+          this.customers = result.data;
+        })
+        .catch(error => {
+          console.log(error);
+        });
     },
     updateModalCallDetails: function(index) {
       this.selectedCallDetails = Object.assign({}, this.todaysCalls[index]);
@@ -228,6 +238,7 @@ export default {
   },
   mounted() {
     this.loadTodaysWorkOrders();
+    this.loadCustomers();
   }
 };
 </script>

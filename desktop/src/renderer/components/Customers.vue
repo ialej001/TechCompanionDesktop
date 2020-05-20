@@ -39,8 +39,9 @@
     <b-modal :active.sync="isEditActive" has-modal-card trap-focus aria-modal>
       <EditCustomer
         @close="closeEditModal()"
-        @onNewCallSubmit="onEditSubmit()"
+        @onNewSubmit="onNewSubmit()"
         @onEditSubmit="onEditSubmit()"
+        @onDeleteSubmit="onDeleteSubmit()"
         :customer="customer"
         :isNew="isNew"
       ></EditCustomer>
@@ -91,16 +92,31 @@ export default {
   },
   methods: {
     getCustomers: function() {
-      DataService.getCustomers().then(customers => {
-        this.customers = customers.data;
-        console.log(this.customers);
-        this.total = this.customers.length;
-      });
+      DataService.getCustomers()
+        .then(customers => {
+          this.customers = customers.data;
+          console.log(this.customers);
+          this.total = this.customers.length;
+        })
+        .catch(() => {
+          console.log("no customers");
+        });
+    },
+    closeEditModal: function() {
+      this.isEditActive = false;
+      this.selected = null;
+      this.isNew = false;
     },
     onNew: function() {
       this.customer = {};
       this.isNew = true;
       this.isEditActive = true;
+    },
+    onNewSubmit: function() {
+      console.log(this.customer);
+      this.customers.push(this.customer);
+      this.customer = {};
+      this.closeEditModal();
     },
     onEdit: function() {
       if (this.customer.gateDetails == null) {
@@ -125,13 +141,19 @@ export default {
       this.isEditActive = true;
       console.log(this.customer);
     },
-    onDelete(customer) {
-      console.log(customer);
+    onEditSubmit: function() {
+      this.customers.splice(
+        this.customers.indexOf(this.selected),
+        1,
+        this.customer
+      );
+      this.closeEditModal();
     },
-    closeEditModal: function() {
-      this.isEditActive = false;
-      this.selected = null;
-      this.isNew = false;
+    onDeleteSubmit() {
+      console.log("delete submit");
+      this.customers.splice(this.customers.indexOf(this.selected), 1);
+      this.closeEditModal();
+      // this.getCustomers();
     }
   },
   mounted() {

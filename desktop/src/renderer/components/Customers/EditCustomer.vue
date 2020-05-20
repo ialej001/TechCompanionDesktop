@@ -13,107 +13,198 @@
       ></span>
     </header>
     <section class="modal-card-body">
-      <article class="panel">
-        <p class="panel-tabs">
-          <a :class="[tab === 0 ? 'is-active' : '']" @click="tab = 0"
-            >Property</a
-          >
-          <a :class="[tab === 1 ? 'is-active' : '']" @click="tab = 1"
-            >Contact</a
-          >
-          <a :class="[tab === 2 ? 'is-active' : '']" @click="tab = 2">Codes</a>
-        </p>
-        <div class="panel-block" v-if="tab === 0">
-          <div class="container">
-            <div class="columns is-multiline">
-              <div class="column is-two-thirds">
-                <b-field label="Property Name">
-                  <b-input v-model="customer.propertyName"></b-input>
-                </b-field>
+      <div class="tabs">
+        <ul>
+          <li active-class="is-active" @click="tab = 0"><a>Property</a></li>
+          <li active-class="is-active" @click="tab = 1"><a>Contact</a></li>
+          <li active-class="is-active" @click="tab = 2"><a>Locations</a></li>
+        </ul>
+      </div>
+      <div class="container" v-if="tab == 0">
+        <div class="columns is-multiline">
+          <div class="column is-two-thirds">
+            <b-field label="Property Name">
+              <b-input v-model="customer.propertyName"></b-input>
+            </b-field>
+          </div>
+          <div class="column is-one-third">
+            <b-field label="Property Type">
+              <b-select
+                v-model="customer.propertyType"
+                placeholder="Select one"
+              >
+                <option value="Residential">
+                  House
+                </option>
+                <option value="Apartment">
+                  Apartment/Condo
+                </option>
+                <option value="Commerical">
+                  Business complex
+                </option>
+                <option value="Industrial">
+                  Industrial complex
+                </option>
+              </b-select>
+            </b-field>
+          </div>
+          <div class="column is-6">
+            <b-field required label="Street Address">
+              <b-input v-model="customer.streetAddress"></b-input>
+            </b-field>
+          </div>
+          <div class="column is-4">
+            <b-field required label="City">
+              <b-input v-model="customer.city"></b-input>
+            </b-field>
+          </div>
+          <div class="column is-2">
+            <b-field required label="Zip code">
+              <b-input v-model="customer.zipCode"></b-input>
+            </b-field>
+          </div>
+        </div>
+      </div>
+
+      <div class="container" v-if="tab == 1">
+        <div class="columns is-multiline">
+          <div class="column is-6">
+            <b-field required label="Primary contact">
+              <b-input v-model="customer.contactName"></b-input>
+            </b-field>
+          </div>
+          <div class="column is-4">
+            <b-field required label="Phone number">
+              <b-input v-model="customer.contactPhone"></b-input>
+            </b-field>
+          </div>
+          <div class="column is-8">
+            <b-field label="Email">
+              <b-input v-model="customer.contactEmail"></b-input>
+            </b-field>
+          </div>
+        </div>
+      </div>
+
+      <div class="container" v-if="tab == 2">
+        <div class="columns is-multiline is-centered">
+          <div class="column is-12">
+            <b-collapse
+              class="card"
+              animation="slide"
+              aria-id="contentIdForA11y3"
+              :open="isNewDetailOpen"
+              @open="isNewDetailOpen = !isNewDetailOpen"
+            >
+              <div
+                slot="trigger"
+                slot-scope="props"
+                class="card-header"
+                role="button"
+                aria-controls="contentIdForA11y3"
+              >
+                <p class="card-header-title">
+                  Add a new location
+                </p>
+                <a class="card-header-icon">
+                  <b-icon :icon="props.open ? 'menu-up' : 'menu-down'">
+                  </b-icon>
+                </a>
               </div>
-              <div class="column is-one-third">
-                <b-field label="Property Type">
-                  <b-select
-                    v-model="customer.propertyType"
-                    placeholder="Select one"
-                  >
-                    <option value="Residential">
-                      House
-                    </option>
-                    <option value="Apartment">
-                      Apartment/Condo
-                    </option>
-                    <option value="Commerical">
-                      Business complex
-                    </option>
-                    <option value="Industrial">
-                      Industrial complex
-                    </option>
-                  </b-select>
-                </b-field>
+              <div class="card-content">
+                <div class="content">
+                  <b-field label="Location">
+                    <b-input v-model="location.location"></b-input>
+                  </b-field>
+                  <b-field label="Access Codes">
+                    <b-input
+                      v-model="location.accessCodes"
+                      maxlength="200"
+                      type="textarea"
+                    ></b-input>
+                  </b-field>
+                </div>
               </div>
-              <div class="column is-6">
-                <b-field required label="Street Address">
-                  <b-input v-model="customer.streetAddress"></b-input>
-                </b-field>
-              </div>
-              <div class="column is-4">
-                <b-field required label="City">
-                  <b-input v-model="customer.city"></b-input>
-                </b-field>
-              </div>
-              <div class="column is-2">
-                <b-field required label="Zip code">
-                  <b-input v-model="customer.zipCode"></b-input>
-                </b-field>
-              </div>
+              <footer class="card-footer">
+                <a
+                  class="card-footer-item"
+                  @click="isNewDetailOpen = !isNewDetailOpen"
+                  >Cancel</a
+                >
+                <a class="card-footer-item" @click="createLocation()">Create</a>
+              </footer>
+            </b-collapse>
+          </div>
+          <div class="column is-12">
+            <div v-if="customer.gateDetails != null" class="container">
+              <b-collapse
+                class="card"
+                animation="slide"
+                v-for="(detail, index) of customer.gateDetails"
+                :key="index"
+                :open="detailOpenIndex == index"
+                @open="detailOpenIndex = index"
+              >
+                <div
+                  slot="trigger"
+                  slot-scope="props"
+                  class="card-header"
+                  role="button"
+                >
+                  <p class="card-header-title">
+                    {{ detail.location }}
+                  </p>
+                  <a class="card-header-icon">
+                    <b-icon :icon="props.open ? 'menu-down' : 'menu-up'">
+                    </b-icon>
+                  </a>
+                </div>
+                <div class="card-content">
+                  <div class="content">
+                    <div class="container">
+                      <div class="columns">
+                        <div class="column is-11">
+                          <b-field label="Location"
+                            ><b-input
+                              v-model="customer.gateDetails[index].location"
+                              :disabled="
+                                editDetailIndex == detailOpenIndex
+                                  ? false
+                                  : true
+                              "
+                            ></b-input
+                          ></b-field>
+                          <b-field label="Access Codes"
+                            ><b-input
+                              type="textArea"
+                              v-model="customer.gateDetails[index].accessCodes"
+                              :disabled="
+                                editDetailIndex == detailOpenIndex
+                                  ? false
+                                  : true
+                              "
+                            ></b-input
+                          ></b-field>
+                        </div>
+                        <div class="column is-1">
+                          <b-button
+                            @click="editDetailIndex = index"
+                            v-if="editDetailIndex == null"
+                            ><b-icon icon="pencil"></b-icon
+                          ></b-button>
+                          <b-button v-else @click="editDetailIndex = null"
+                            ><b-icon icon="check"></b-icon
+                          ></b-button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </b-collapse>
             </div>
           </div>
         </div>
-        <div class="panel-block" v-if="tab === 1">
-          <div class="container">
-            <div class="columns is-multiline">
-              <div class="column is-6">
-                <b-field required label="Primary contact">
-                  <b-input v-model="customer.contactName"></b-input>
-                </b-field>
-              </div>
-              <div class="column is-4">
-                <b-field required label="Phone number">
-                  <b-input v-model="customer.contactPhone"></b-input>
-                </b-field>
-              </div>
-              <div class="column is-8">
-                <b-field label="Email">
-                  <b-input v-model="customer.contactEmail"></b-input>
-                </b-field>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="panel-block" v-if="tab === 2">
-          <b-button @click="newLocation = true"
-            ><b-icon icon="plus"></b-icon
-          ></b-button>
-          <div v-if="newLocation">
-            add location
-          </div>
-          <b-table
-            v-if="customer.gateDetails"
-            :data="customer.gateDetails"
-            :opened-detailed="defaultOpenedDetails"
-            detailed
-            detail-key="index"
-            :show-detail-icon="true"
-          >
-            <template slot-scope="props">
-              <b-table-column field="location" label="Location">
-                {{ props.row.location }}
-              </b-table-column>
-            </template>
-          </b-table>
-        </div>
-      </article>
+      </div>
     </section>
     <footer class="modal-card-foot">
       <div>
@@ -150,15 +241,16 @@ export default {
     return {
       title: this.isNew ? "Add Customer" : "Edit Customer",
       tab: 0,
-      newCustomer: null,
-      newLocation: false,
+      isNewDetailOpen: false,
+      detailOpenIndex: -1,
+      editDetailIndex: null,
       location: {
         location: "",
         accessCodes: "",
-        operator1: "",
-        operator2: "",
-        gateType1: "",
-        gateType2: "",
+        operator1: "Unknown",
+        operator2: "Unknown",
+        gateType1: "Unknown",
+        gateType2: "Unknown",
         isMasterSlave: false
       },
       selectedLocation: null,
@@ -168,6 +260,19 @@ export default {
     };
   },
   methods: {
+    createLocation: function() {
+      if (this.customer.gateDetails == null) this.customer.gateDetails = [];
+
+      this.$set(
+        this.customer.gateDetails,
+        this.customer.gateDetails.length,
+        Object.assign({}, this.location)
+      );
+
+      this.location.location = "";
+      this.location.accessCodes = "";
+      this.isNewDetailOpen = !this.isNewDetailOpen;
+    },
     locationEdit: function() {
       console.log("selected");
       console.log(this.location);
@@ -187,12 +292,13 @@ export default {
         type: "is-danger",
         hasIcon: true,
         onConfirm: async () => {
-          this.close();
           await DataService.deleteCustomer(this.customer.string_id)
             .then(() => {
+              this.$emit("onDeleteSubmit");
               this.$buefy.toast.open("Account deleted!");
             })
             .catch(() => {
+              this.close();
               this.$buefy.toast.open("Something bad happened");
             });
         }
@@ -207,10 +313,28 @@ export default {
     },
     onEditSubmit: async function() {
       console.log(this.customer.city);
-      await DataService.updateCustomer(this.customer, this.customer.string_id);
+      await DataService.updateCustomer(this.customer, this.customer.string_id)
+        .then(result => {
+          console.log(result.data);
+          console.log("created customer");
+          this.$emit("update:customer", result.data);
+          this.$emit("onEditSubmit");
+        })
+        .catch(() => {});
     },
-    onNewSubmit: function() {
+    onNewSubmit: async function() {
       console.log("new");
+      console.log(this.customer);
+      await DataService.createCustomer(this.customer)
+        .then(result => {
+          console.log(result.data);
+          console.log("created customer");
+          this.$emit("update:customer", result.data);
+          this.$emit("onNewSubmit");
+        })
+        .catch(() => {
+          console.log("error creating customer");
+        });
     }
   }
 };

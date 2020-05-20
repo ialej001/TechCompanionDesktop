@@ -50,6 +50,8 @@
 </template>
 
 <script>
+import DataService from "@/services/DataService";
+
 export default {
   name: "App"
 };
