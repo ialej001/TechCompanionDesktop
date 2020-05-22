@@ -14,8 +14,8 @@
           <b-step-item step="1" label="Call Type" :clickable="false">
             <br />
             <b-field label="What kind of call?">
-              <b-select v-model="callType" placeholder="Pick one" required>
-                <option value="workOrder">Service</option>
+              <b-select v-model="callType" placeholder="Pick one">
+                <option value="workOrder" selected>Service</option>
                 <option value="estimate">Estimate</option>
               </b-select>
             </b-field>
@@ -23,7 +23,7 @@
 
           <b-step-item step="2" label="Customer" :clickable="false">
             <div
-              v-if="!hasFoundCustomer"
+              v-if="!isNewCustomer"
               class="columns is-vcentered is-multiline"
             >
               <div class="column is-11">
@@ -33,7 +33,6 @@
                     :data="filteredAddresses"
                     placeholder="Type an address"
                     icon="magnify"
-                    clearable
                     @select="option => (selected = addresses.indexOf(option))"
                   >
                     <template slot="empty">No results found</template>
@@ -41,19 +40,13 @@
                 </b-field>
               </div>
               <div class="column is-1">
-                <b-button @click="(selected = null), (address = '')"
+                <b-button
+                  :disabled="selected == -1 ? true : false"
+                  @click="clearCustomerSearch()"
                   ><b-icon icon="close"></b-icon
                 ></b-button>
               </div>
-              <div class="column is-12" v-if="selected != null">
-                <b-button
-                  type="is-info"
-                  v-if="selected >= 0"
-                  @click="useSelectedCustomer()"
-                  >Use selected</b-button
-                >
-              </div>
-              <div class="column is-12" v-else>
+              <div v-if="selected == -1" class="column is-12">
                 <b-button type="is-success" @click="createNewCustomer()"
                   >New customer</b-button
                 >
@@ -104,7 +97,7 @@
           </b-step-item>
 
           <b-step-item
-            v-if="!hasFoundCustomer"
+            v-if="isNewCustomer"
             step="3"
             label="Location"
             :clickable="false"
@@ -134,11 +127,11 @@
             <b-field label="Gate location">
               <b-select v-model="locationToAdd">
                 <option
-                  v-for="(location, index) in locations"
-                  :value="location"
+                  v-for="(detail, index) in customer.gateDetails"
+                  :value="detail.location"
                   :key="index"
                 >
-                  {{ location }}
+                  {{ detail.location }}
                 </option>
               </b-select>
             </b-field>
@@ -198,7 +191,11 @@
           <b-button v-if="activeStep > 0" @click.prevent="activeStep--"
             >Back</b-button
           >
-          <b-button v-if="activeStep < 3" @click.prevent="activeStep++"
+          <b-button
+            v-if="activeStep < 3"
+            class="button"
+            :disabled="canProceed"
+            @click="validator()"
             >Next</b-button
           >
         </div>
@@ -223,13 +220,19 @@ export default {
   data() {
     return {
       activeStep: 0,
-      callType: "",
+      callType: null,
       isSearchingCustomer: false,
       isNewCustomer: false,
       hasFoundCustomer: false,
       searchQuery: "",
       errors: {
-        lookupError: ""
+        propertyType: false,
+        streetAddress: false,
+        city: false,
+        zipCode: false,
+        contactName: false,
+        contactPhone: false,
+        techAssigned: false
       },
       customer: {},
       customerIndex: -1,
@@ -249,7 +252,7 @@ export default {
           name: "jorge"
         }
       ],
-      selected: null,
+      selected: -1,
       address: ""
     };
   },
@@ -265,14 +268,12 @@ export default {
     closeModal: function() {
       this.$emit("close");
     },
-    useSelectedCustomer: function() {
-      this.customer = Object.assign({}, this.customers[this.selected]);
-      this.setCustomerIndex(this.selected);
-      this.hasFoundCustomer = true;
-      this.activeStep++;
+    clearCustomerSearch: function() {
+      this.selected = -1;
+      this.address = "";
+      this.customer = Object.assign({}, {});
     },
     createNewCustomer: function() {
-      this.isNewCustomer = true;
       this.customer = Object.assign(
         {},
         {
@@ -288,14 +289,16 @@ export default {
           gateDetails: []
         }
       );
+      this.isNewCustomer = true;
     },
     addToDatabase: async function() {
       this.isSendingData = true;
       let callToBeDispatched = {};
       switch (this.callType) {
         case "workOrder":
+          this.customer.zipCode = parseInt(this.customer.zipCode);
           callToBeDispatched = {
-            customer: this.customers[this.customerIndex],
+            customer: this.customer,
             techAssigned: this.techAssigned,
             issues: this.issues
           };
@@ -312,11 +315,10 @@ export default {
     updateIssue: function() {
       if (this.locationToAdd == "" || this.descriptionToAdd == "") return;
 
-      let customer = this.customers[this.customerIndex];
-
       // search through gateDetails and set an index if the pending location is found
       let indexToModify = -1;
-      customer.gateDetails.forEach((detail, index) => {
+
+      this.customer.gateDetails.forEach((detail, index) => {
         if (detail.location.localeCompare(this.locationToAdd)) {
           indexToModify = index;
         }
@@ -324,7 +326,7 @@ export default {
 
       // if not found, create new gateDetails object
       if (indexToModify != -1) {
-        customer.gateDetails.push({
+        this.customer.gateDetails.push({
           location: this.locationToAdd,
           accessCodes: "",
           operator1: "",
@@ -346,9 +348,62 @@ export default {
     },
     setCustomerIndex: function(index) {
       this.customerIndex = index;
+    },
+    validator: function() {
+      switch (this.activeStep) {
+        case 1:
+          this.activeStep++;
+          break;
+        case 2:
+          this.activeStep++;
+          break;
+        case 3:
+          break;
+        default:
+          // step 1/activestep 0
+          this.activeStep++;
+      }
     }
   },
   computed: {
+    canProceed: {
+      get: function() {
+        switch (this.activeStep) {
+          case 1:
+            if (this.selected === -1 && !this.isNewCustomer) {
+              return true;
+            }
+            if (this.customer.propertyType === "") return true;
+
+            if (this.customer.streetAddress === "") return true;
+
+            if (this.customer.city === "") return true;
+
+            if (isNaN(parseInt(this.customer.zipCode))) return true;
+
+            if (this.customer.contactName === "") return true;
+
+            if (this.customer.contactPhone === "") return true;
+
+            return false;
+            return false;
+          // break;
+          case 2:
+            if (this.issues.length > 0) return false;
+          // break;
+          case 3:
+            if (this.techAssigned === "") return true;
+            break;
+          default:
+            // step 1/activestep 0
+            if (this.callType == null) {
+              return true;
+            }
+            return false;
+        }
+      },
+      set: function() {}
+    },
     addresses: function() {
       let addresses = [];
       this.customers.forEach(customer => {
@@ -357,6 +412,7 @@ export default {
       return addresses;
     },
     locations: function() {
+      if (this.customers[this.customerIndex].gateDetails == null) return;
       let locations = [];
       this.customers[this.customerIndex].gateDetails.forEach(detail => {
         locations.push(detail.location);
@@ -373,6 +429,17 @@ export default {
             .indexOf(this.address.toLowerCase()) >= 0
         );
       });
+    }
+  },
+  watch: {
+    selected(value) {
+      if (value == -1) {
+        this.hasFoundCustomer = false;
+        return;
+      }
+
+      this.customer = Object.assign({}, this.customers[value]);
+      this.hasFoundCustomer = true;
     }
   }
 };

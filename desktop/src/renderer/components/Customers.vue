@@ -65,12 +65,6 @@ export default {
       customers: [],
       columns: [
         {
-          field: "propertyName",
-          label: "Property Name",
-          searchable: true,
-          sortable: true
-        },
-        {
           field: "streetAddress",
           label: "Street Address",
           searchable: true,
@@ -79,6 +73,12 @@ export default {
         {
           field: "city",
           label: "City",
+          searchable: true,
+          sortable: true
+        },
+        {
+          field: "propertyName",
+          label: "Property Name",
           searchable: true,
           sortable: true
         }
@@ -120,6 +120,7 @@ export default {
       }
       if (this.isNew) {
         this.customer = {
+          string_id: "",
           propertyName: "",
           propertyType: "",
           streetAddress: "",

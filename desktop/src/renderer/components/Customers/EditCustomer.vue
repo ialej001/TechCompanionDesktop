@@ -308,6 +308,7 @@ export default {
       this.onEditSubmit();
     },
     onEditSubmit: async function() {
+      // console.log(this.customer.string_id);
       await DataService.updateCustomer(this.customer, this.customer.string_id)
         .then(result => {
           this.$emit("update:customer", result.data);

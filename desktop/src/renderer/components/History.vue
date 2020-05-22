@@ -1,7 +1,7 @@
 <template>
   <div>
     <div>
-        <ServiceHistory/>
+      <ServiceHistory />
     </div>
   </div>
 </template>
