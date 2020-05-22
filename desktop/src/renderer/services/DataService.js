@@ -27,6 +27,26 @@ export default {
     return Api().delete(`api/customer/${id}`);
   },
 
+  getIncompleteWorkOrders() {
+    return Api().get("api/incomplete", {
+      transformResponse: [
+        function(data) {
+          return data ? JSON.parse(data) : data;
+        }
+      ]
+    });
+  },
+
+  getCompletedWorkOrders() {
+    return Api().get("api/complete", {
+      transformResponse: [
+        function(data) {
+          return data ? JSON.parse(data) : data;
+        }
+      ]
+    });
+  },
+
   getAllWorkOrders() {
     return Api().get("api/all", {
       transformResponse: [

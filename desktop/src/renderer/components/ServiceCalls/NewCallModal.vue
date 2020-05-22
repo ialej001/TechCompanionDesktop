@@ -289,43 +289,6 @@ export default {
         }
       );
     },
-    // searchForCustomer: async function() {
-    //   this.isSearchingCustomer = true;
-    //   await DataService.searchForCustomer({
-    //     streetAddress: this.searchQuery
-    //   }).then(response => {
-    //     const customers = response.data;
-    //     // if customers is empty, no match found
-    //     console.log(customers);
-    //     if (customers.length == 0) {
-    //       this.isSearchingCustomer = false;
-    //       this.isNewCustomer = false;
-    //       this.hasFoundCustomer = false;
-    //       this.errors.lookupError =
-    //         "No customer found. Check your query for typos or create a new customer record.";
-    //       // create the customer skeleton
-    //       this.customers.push({
-    //         propertyName: "",
-    //         propertyType: "",
-    //         streetAddress: this.searchQuery,
-    //         city: "",
-    //         zipCode: "",
-    //         serviceAddress: "",
-    //         contactName: "",
-    //         contactPhone: "",
-    //         contactEmail: "",
-    //         gateDetails: []
-    //       });
-    //     } else {
-    //       customers.forEach(customer => {
-    //         this.customers.push(customer);
-    //       });
-    //       this.isSearchingCustomer = false;
-    //       this.isNewCustomer = false;
-    //       this.hasFoundCustomer = true;
-    //     }
-    //   });
-    // },
     addToDatabase: async function() {
       this.isSendingData = true;
       let callToBeDispatched = {};
@@ -340,7 +303,6 @@ export default {
           await DataService.dispatchWorkOrder(callToBeDispatched)
             .then(() => {
               this.isSubmissionReceived = true;
-              console.log("submitted");
               this.$emit("onNewCallSubmit");
             })
             .catch((this.isSendingData = false));
@@ -383,7 +345,6 @@ export default {
       this.descriptionToAdd = "";
     },
     setCustomerIndex: function(index) {
-      console.log("click", index);
       this.customerIndex = index;
     }
   },
@@ -397,10 +358,6 @@ export default {
     },
     locations: function() {
       let locations = [];
-      console.log("after select");
-      console.log(this.customers);
-      console.log(this.customerIndex);
-      console.log(this.customers[this.customerIndex]);
       this.customers[this.customerIndex].gateDetails.forEach(detail => {
         locations.push(detail.location);
       });

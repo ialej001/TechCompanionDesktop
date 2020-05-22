@@ -7,7 +7,6 @@ const mutations = {
     state.customers.splice(index, 1);
   },
   addCustomer(state, customer) {
-    console.log("add");
     state.customers.push(customer);
   },
   updateCustomer(state, index, customer) {

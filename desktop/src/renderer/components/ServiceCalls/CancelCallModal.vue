@@ -45,7 +45,6 @@ export default {
     },
     cancelCall: async function() {
       // call dataservice after confirmation
-      console.log(this.callIdToBeRemoved);
       await DataService.cancelWorkOrder(this.callIdToBeRemoved)
         .then(response => {
           this.isCancelled = true;
@@ -56,9 +55,7 @@ export default {
             800
           );
         })
-        .catch(error => {
-          console.log(error.response);
-        });
+        .catch(error => {});
     }
   }
 };

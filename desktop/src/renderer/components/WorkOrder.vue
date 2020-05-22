@@ -198,14 +198,13 @@ export default {
         1,
         this.selectedCallDetails
       );
-      console.log("updated: " + this.todaysCalls);
     },
     onCancelCallSubmit: function() {
       this.isCancelCallModalActive = false;
       this.todaysCalls.splice(this.callIndexToBeUpdated, 1);
     },
     loadTodaysWorkOrders: async function() {
-      await DataService.getAllWorkOrders()
+      await DataService.getIncompleteWorkOrders()
         .then(workOrders => {
           this.todaysCalls = workOrders.data.filter(function(item) {
             return item.customer;
@@ -221,14 +220,12 @@ export default {
         .then(result => {
           this.customers = result.data;
         })
-        .catch(error => {
-          console.log(error);
-        });
+        .catch(error => {});
     },
     updateModalCallDetails: function(index) {
       this.selectedCallDetails = Object.assign({}, this.todaysCalls[index]);
       this.isUpdateCallModalActive = true;
-      console.log(typeof index);
+
       this.callIndexToBeUpdated = index;
     },
     cancelCallModal: function(index) {

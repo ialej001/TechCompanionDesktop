@@ -89,9 +89,8 @@ export default {
   },
   methods: {
     getWorkOrders: function() {
-      DataService.getAllWorkOrders().then(workOrders => {
+      DataService.getCompletedWorkOrders().then(workOrders => {
         this.workOrders = workOrders.data;
-        console.log(this.workOrders);
         this.total = this.workOrders.length;
       });
     },

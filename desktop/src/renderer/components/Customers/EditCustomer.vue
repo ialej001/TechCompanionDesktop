@@ -273,10 +273,6 @@ export default {
       this.location.accessCodes = "";
       this.isNewDetailOpen = !this.isNewDetailOpen;
     },
-    locationEdit: function() {
-      console.log("selected");
-      console.log(this.location);
-    },
     close: function() {
       this.$emit("close");
     },
@@ -312,29 +308,21 @@ export default {
       this.onEditSubmit();
     },
     onEditSubmit: async function() {
-      console.log(this.customer.city);
       await DataService.updateCustomer(this.customer, this.customer.string_id)
         .then(result => {
-          console.log(result.data);
-          console.log("created customer");
           this.$emit("update:customer", result.data);
           this.$emit("onEditSubmit");
         })
         .catch(() => {});
     },
     onNewSubmit: async function() {
-      console.log("new");
-      console.log(this.customer);
+      if (this.customer.propertyName == null) this.customer.propertyName = "";
       await DataService.createCustomer(this.customer)
         .then(result => {
-          console.log(result.data);
-          console.log("created customer");
           this.$emit("update:customer", result.data);
           this.$emit("onNewSubmit");
         })
-        .catch(() => {
-          console.log("error creating customer");
-        });
+        .catch(() => {});
     }
   }
 };

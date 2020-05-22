@@ -95,12 +95,9 @@ export default {
       DataService.getCustomers()
         .then(customers => {
           this.customers = customers.data;
-          console.log(this.customers);
           this.total = this.customers.length;
         })
-        .catch(() => {
-          console.log("no customers");
-        });
+        .catch(() => {});
     },
     closeEditModal: function() {
       this.isEditActive = false;
@@ -113,7 +110,6 @@ export default {
       this.isEditActive = true;
     },
     onNewSubmit: function() {
-      console.log(this.customer);
       this.customers.push(this.customer);
       this.customer = {};
       this.closeEditModal();
@@ -139,7 +135,6 @@ export default {
         this.customer = Object.assign({}, this.selected);
       }
       this.isEditActive = true;
-      console.log(this.customer);
     },
     onEditSubmit: function() {
       this.customers.splice(
@@ -150,7 +145,6 @@ export default {
       this.closeEditModal();
     },
     onDeleteSubmit() {
-      console.log("delete submit");
       this.customers.splice(this.customers.indexOf(this.selected), 1);
       this.closeEditModal();
       // this.getCustomers();
