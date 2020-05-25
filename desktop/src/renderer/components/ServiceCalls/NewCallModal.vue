@@ -16,7 +16,7 @@
             <b-field label="What kind of call?">
               <b-select v-model="callType" placeholder="Pick one">
                 <option value="workOrder" selected>Service</option>
-                <option value="estimate">Estimate</option>
+                <option value="estimate" disabled>Estimate</option>
               </b-select>
             </b-field>
           </b-step-item>
@@ -67,6 +67,7 @@
                   <option value="Apartment">
                     Apartment/Condo
                   </option>
+                  <option value="HOA">HOA</option>
                   <option value="Commerical">
                     Business complex
                   </option>
@@ -298,10 +299,11 @@ export default {
         case "workOrder":
           this.customer.zipCode = parseInt(this.customer.zipCode);
           callToBeDispatched = {
-            customer: this.customer,
+            customer: Object.assign({}, this.customer),
             techAssigned: this.techAssigned,
             issues: this.issues
           };
+          console.log(callToBeDispatched);
           // send the info to the DB
           await DataService.dispatchWorkOrder(callToBeDispatched)
             .then(() => {
@@ -325,7 +327,7 @@ export default {
       });
 
       // if not found, create new gateDetails object
-      if (indexToModify != -1) {
+      if (indexToModify == -1) {
         this.customer.gateDetails.push({
           location: this.locationToAdd,
           accessCodes: "",
@@ -406,6 +408,7 @@ export default {
     },
     addresses: function() {
       let addresses = [];
+      console.log(this.customers.length);
       this.customers.forEach(customer => {
         addresses.push(customer.serviceAddress);
       });

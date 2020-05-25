@@ -1,14 +1,10 @@
 import Api from "@/services/Api";
 
 export default {
+  // Customer calls
   createCustomer(customer) {
     return Api().post("api/customer/new", customer);
   },
-
-  searchForCustomer(serviceAddress) {
-    return Api().post("api/findCustomer", serviceAddress);
-  },
-
   getCustomers() {
     return Api().get("api/customers", {
       transformResponse: [
@@ -18,15 +14,14 @@ export default {
       ]
     });
   },
-
   updateCustomer(customerInfo, id) {
     return Api().put(`api/customer/${id}`, customerInfo);
   },
-
   deleteCustomer(id) {
     return Api().delete(`api/customer/${id}`);
   },
 
+  // Dispatch calls
   getIncompleteWorkOrders() {
     return Api().get("api/incomplete", {
       transformResponse: [
@@ -36,7 +31,6 @@ export default {
       ]
     });
   },
-
   getCompletedWorkOrders() {
     return Api().get("api/complete", {
       transformResponse: [
@@ -46,9 +40,20 @@ export default {
       ]
     });
   },
+  dispatchWorkOrder(customerInfo) {
+    return Api().post("api/dispatch/work-order", customerInfo);
+  },
+  updateWorkOrder(customerInfo, id) {
+    return Api().put(`api/update/${id}`, customerInfo);
+  },
+  cancelWorkOrder(id) {
+    return Api().delete(`api/work-order/${id}`);
+  },
 
-  getAllWorkOrders() {
-    return Api().get("api/all", {
+  // Inventory calls
+  createItem(item) {},
+  getAllItems() {
+    return Api().get("api/parts/all", {
       transformResponse: [
         function(data) {
           return data ? JSON.parse(data) : data;
@@ -56,16 +61,10 @@ export default {
       ]
     });
   },
-
-  dispatchWorkOrder(customerInfo) {
-    return Api().post("api/dispatch/work-order", customerInfo);
+  updateItem(id, item) {
+    return Api().put(`api/parts/update/${id}`, item);
   },
-
-  updateWorkOrder(customerInfo, id) {
-    return Api().put(`api/update/${id}`, customerInfo);
-  },
-
-  cancelWorkOrder(id) {
-    return Api().delete(`api/work-order/${id}`);
+  deleteItem(id) {
+    return Api().delete(`api/parts/delete/${id}`);
   }
 };

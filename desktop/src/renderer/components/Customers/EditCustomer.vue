@@ -39,6 +39,7 @@
                 <option value="Apartment">
                   Apartment/Condo
                 </option>
+                <option value="HOA">HOA</option>
                 <option value="Commerical">
                   Business complex
                 </option>
@@ -87,24 +88,34 @@
       </div>
 
       <div class="container" v-if="tab == 2">
-        <div class="columns is-multiline is-centered">
+        <div
+          v-if="!isAddingNewLocation"
+          class="columns is-multiline is-centered"
+        >
           <div class="column is-12">
+            <b-button
+              @click="isAddingNewLocation = !isAddingNewLocation"
+              class="button is-info"
+              >Create new location</b-button
+            >
+          </div>
+          <div v-if="customer.gateDetails != null" class="column is-12">
             <b-collapse
               class="card"
               animation="slide"
-              aria-id="contentIdForA11y3"
-              :open="isNewDetailOpen"
-              @open="isNewDetailOpen = !isNewDetailOpen"
+              v-for="(detail, index) of customer.gateDetails"
+              :key="index"
+              :open="detailOpenIndex == index"
+              @open="detailOpenIndex = index"
             >
               <div
                 slot="trigger"
                 slot-scope="props"
                 class="card-header"
                 role="button"
-                aria-controls="contentIdForA11y3"
               >
                 <p class="card-header-title">
-                  Add a new location
+                  {{ detail.location }}
                 </p>
                 <a class="card-header-icon">
                   <b-icon :icon="props.open ? 'menu-up' : 'menu-down'">
@@ -113,96 +124,60 @@
               </div>
               <div class="card-content">
                 <div class="content">
-                  <b-field label="Location">
-                    <b-input v-model="location.location"></b-input>
-                  </b-field>
-                  <b-field label="Access Codes">
-                    <b-input
-                      v-model="location.accessCodes"
-                      maxlength="200"
-                      type="textarea"
-                    ></b-input>
-                  </b-field>
-                </div>
-              </div>
-              <footer class="card-footer">
-                <a
-                  class="card-footer-item"
-                  @click="isNewDetailOpen = !isNewDetailOpen"
-                  >Cancel</a
-                >
-                <a class="card-footer-item" @click="createLocation()">Create</a>
-              </footer>
-            </b-collapse>
-          </div>
-          <div class="column is-12">
-            <div v-if="customer.gateDetails != null" class="container">
-              <b-collapse
-                class="card"
-                animation="slide"
-                v-for="(detail, index) of customer.gateDetails"
-                :key="index"
-                :open="detailOpenIndex == index"
-                @open="detailOpenIndex = index"
-              >
-                <div
-                  slot="trigger"
-                  slot-scope="props"
-                  class="card-header"
-                  role="button"
-                >
-                  <p class="card-header-title">
-                    {{ detail.location }}
-                  </p>
-                  <a class="card-header-icon">
-                    <b-icon :icon="props.open ? 'menu-down' : 'menu-up'">
-                    </b-icon>
-                  </a>
-                </div>
-                <div class="card-content">
-                  <div class="content">
-                    <div class="container">
-                      <div class="columns">
-                        <div class="column is-11">
-                          <b-field label="Location"
-                            ><b-input
-                              v-model="customer.gateDetails[index].location"
-                              :disabled="
-                                editDetailIndex == detailOpenIndex
-                                  ? false
-                                  : true
-                              "
-                            ></b-input
-                          ></b-field>
-                          <b-field label="Access Codes"
-                            ><b-input
-                              type="textArea"
-                              v-model="customer.gateDetails[index].accessCodes"
-                              :disabled="
-                                editDetailIndex == detailOpenIndex
-                                  ? false
-                                  : true
-                              "
-                            ></b-input
-                          ></b-field>
-                        </div>
-                        <div class="column is-1">
-                          <b-button
-                            @click="editDetailIndex = index"
-                            v-if="editDetailIndex == null"
-                            ><b-icon icon="pencil"></b-icon
-                          ></b-button>
-                          <b-button v-else @click="editDetailIndex = null"
-                            ><b-icon icon="check"></b-icon
-                          ></b-button>
-                        </div>
+                  <div class="container">
+                    <div class="columns">
+                      <div class="column is-10">
+                        <b-field label="Location"
+                          ><b-input
+                            v-model="customer.gateDetails[index].location"
+                            :disabled="
+                              editDetailIndex == detailOpenIndex ? false : true
+                            "
+                          ></b-input
+                        ></b-field>
+                        <b-field label="Access Codes"
+                          ><b-input
+                            type="textArea"
+                            v-model="customer.gateDetails[index].accessCodes"
+                            :disabled="
+                              editDetailIndex == detailOpenIndex ? false : true
+                            "
+                          ></b-input
+                        ></b-field>
+                      </div>
+                      <div class="column is-1">
+                        <b-button
+                          v-if="editDetailIndex == null"
+                          @click="editDetailIndex = detailOpenIndex"
+                          ><b-icon icon="pencil"></b-icon
+                        ></b-button>
+                        <b-button v-else @click="editDetailIndex = null"
+                          ><b-icon icon="check"></b-icon
+                        ></b-button>
+                      </div>
+                      <div class="column is-1">
+                        <b-button class="is-danger" @click="onDeleteLocation()"
+                          ><b-icon icon="close"></b-icon
+                        ></b-button>
                       </div>
                     </div>
                   </div>
                 </div>
-              </b-collapse>
-            </div>
+              </div>
+            </b-collapse>
           </div>
+        </div>
+        <div v-else>
+          <b-field label="Location">
+            <b-input v-model="location.location"></b-input>
+          </b-field>
+          <b-field label="Access Codes">
+            <b-input
+              v-model="location.accessCodes"
+              maxlength="200"
+              type="textarea"
+            ></b-input>
+          </b-field>
         </div>
       </div>
     </section>
@@ -212,10 +187,19 @@
       </div>
       <div>
         <b-button
+          v-if="isAddingNewLocation"
+          @click="isAddingNewLocation = !isAddingNewLocation"
+          >Cancel</b-button
+        >
+        <b-button
+          v-if="!isAddingNewLocation"
           style="margin-right: 10px"
           type="is-success"
           @click="submit"
           >{{ submitButtonLabel }}</b-button
+        >
+        <b-button @click="createLocation()" class="is-info" v-else
+          >Add location</b-button
         >
       </div>
     </footer>
@@ -244,6 +228,7 @@ export default {
       isNewDetailOpen: false,
       detailOpenIndex: -1,
       editDetailIndex: null,
+      enableLocationSearch: false,
       location: {
         location: "",
         accessCodes: "",
@@ -253,9 +238,9 @@ export default {
         gateType2: "Unknown",
         isMasterSlave: false
       },
-      selectedLocation: null,
-      defaultOpenedDetails: [1],
+      defaultOpenedDetails: [],
       isDeleting: false,
+      isAddingNewLocation: false,
       submitButtonLabel: this.isNew ? "Create" : "Update"
     };
   },
@@ -272,12 +257,26 @@ export default {
       this.location.location = "";
       this.location.accessCodes = "";
       this.isNewDetailOpen = !this.isNewDetailOpen;
+      this.isAddingNewLocation = !this.isAddingNewLocation;
     },
     close: function() {
       this.$emit("close");
     },
-    onDelete: function() {
-      this.isDeleting = true;
+    closeAllOtherDetails(row, index) {
+      this.defaultOpenedDetails = [row.location];
+    },
+    onDeleteLocation(row) {
+      console.log(row);
+      this.$buefy.dialog.confirm({
+        title: "Remove location",
+        message:
+          "Are you sure you want to <b>delete</b> this location? This action cannot be undone.",
+        confirmText: "Delete location",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm: () =>
+          this.customer.gateDetails.splice(this.detailOpenIndex, 1)
+      });
     },
     confirmCustomDelete() {
       this.$buefy.dialog.confirm({
@@ -320,6 +319,8 @@ export default {
       if (this.customer.propertyName == null) this.customer.propertyName = "";
       await DataService.createCustomer(this.customer)
         .then(result => {
+          console.log(result.data);
+          this.customer.string_id = result.data.string_id;
           this.$emit("update:customer", result.data);
           this.$emit("onNewSubmit");
         })

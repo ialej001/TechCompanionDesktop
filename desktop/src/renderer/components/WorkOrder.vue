@@ -5,35 +5,24 @@
         class="column is-one-fifth-fullhd is-one-quarter-desktop is-one-third-tablet"
       >
         <div class="card">
-          <div
-            v-if="!todaysCalls.length"
-            class="card-content has-text-centered"
-          >
-            No open work orders
+          <div class="card-content has-text-centered">
+            <p v-if="!todaysCalls.length">No open work orders</p>
+            <p v-else><br /></p>
+            <p>Click below to add a new call</p>
             <br />
-            <br />
+
             <b-button
               class="is-success is-large"
               @click="isNewCallModalActive = true"
             >
               New
             </b-button>
-          </div>
-          <div v-else class="card-content has-text-centered">
-            <br /><br />
-            Click below to add a new call
-            <br /><br />
-            <b-button
-              class="is-success is-large"
-              @click="isNewCallModalActive = true"
-            >
-              New
-            </b-button>
-            <br /><br /><br /><br />
+            <br />
+            <br />
           </div>
         </div>
       </div>
-      <!-- begin card iteration for all works orders on a date-->
+      <!-- begin card iteration for all incomplete works orders-->
       <div
         v-for="(call, index) in todaysCalls"
         :key="index"
@@ -73,7 +62,7 @@
               <span> {{ issue.location }} - {{ issue.problem }} </span>
             </div>
             <br />
-            <b-dropdown hoverable aria-role="list">
+            <b-dropdown aria-role="list">
               <div class="block" slot="trigger">
                 <b-icon icon="dots-horizontal" size="is-small"></b-icon>
               </div>
@@ -98,11 +87,13 @@
         has-modal-card
         trap-focus
         aria-modal
+        :canCancel="false"
       >
         <NewCallModal
           @close="closeNewCallModal()"
           @onNewCallSubmit="onNewCallSubmit()"
           :customers="customers"
+          :selectedCallDetails.sync="selectedCallDetails"
         ></NewCallModal>
       </b-modal>
 
@@ -112,6 +103,7 @@
         trap-focus
         aria-role="dialog"
         aria-modal
+        :canCancel="false"
       >
         <UpdateCallModal
           @close="closeUpdateCallModal()"
@@ -128,6 +120,7 @@
         has-modal-card
         trap-focus
         aria-modal
+        :canCancel="false"
       >
         <CancelCallModal
           @close="closeCancelCallModal()"
@@ -188,8 +181,8 @@ export default {
       this.isCancelCallModalActive = false;
     },
     onNewCallSubmit: function() {
-      this.closeNewCallModal();
-      this.loadTodaysWorkOrders();
+      this.isNewCallModalActive = false;
+      this.todaysCalls.push(this.selectedCallDetails);
     },
     onUpdateCallSubmit: function() {
       this.isUpdateCallModalActive = false;

@@ -20,7 +20,7 @@
         </router-link>
         <router-link
           tag="li"
-          :to="{ path: '/' }"
+          :to="{ path: '/Maintenance' }"
           active-class="is-active"
           exact
         >
@@ -36,11 +36,19 @@
         </router-link>
         <router-link
           tag="li"
-          :to="{ path: '/' }"
+          :to="{ path: '/Technicians' }"
           active-class="is-active"
           exact
         >
           <a>Technicians</a>
+        </router-link>
+        <router-link
+          tag="li"
+          :to="{ path: '/Inventory' }"
+          active-class="is-active"
+          exact
+        >
+          <a>Inventory</a>
         </router-link>
       </ul>
     </div>

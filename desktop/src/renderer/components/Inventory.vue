@@ -1,7 +1,37 @@
 <template>
   <div>
     <div class="container">
-      <b-button class="button is-success is-large" @click="onNew"
+      <!-- <div class="container">
+        <b-field grouped group-multiline>
+          <div class="control">
+            <b-switch v-model="isBordered">Bordered</b-switch>
+          </div>
+          <div class="control">
+            <b-switch v-model="isStriped">Striped</b-switch>
+          </div>
+          <div class="control">
+            <b-switch v-model="isNarrowed">Narrowed</b-switch>
+          </div>
+          <div class="control">
+            <b-switch v-model="isHoverable">Hoverable</b-switch>
+          </div>
+          <div class="control">
+            <b-switch v-model="isFocusable">Focusable</b-switch>
+          </div>
+          <div class="control">
+            <b-switch v-model="isLoading">Loading state</b-switch>
+          </div>
+          <div class="control">
+            <b-switch v-model="isEmpty">Empty</b-switch>
+          </div>
+          <div class="control">
+            <b-switch v-model="hasMobileCards"
+              >Mobile cards <small>(collapsed rows)</small></b-switch
+            >
+          </div> 
+        </b-field>
+      </div> -->
+      <b-button disabled class="button is-success is-large" @click="onNew"
         ><b-icon icon="plus"></b-icon><span>New</span></b-button
       >
       <b-button
@@ -18,12 +48,12 @@
       >
 
       <b-table
-        :data="customers"
+        :data="items"
         :columns="columns"
         :paginated="true"
         :per-page="perPage"
         :current-page.sync="currentPage"
-        default-sort="streetAddress"
+        default-sort="partNumber"
         :selected.sync="selected"
       >
         <b-input
@@ -43,14 +73,14 @@
       trap-focus
       aria-modal
     >
-      <EditCustomer
+      <EditItem
         @close="closeEditModal()"
         @onNewSubmit="onNewSubmit()"
         @onEditSubmit="onEditSubmit()"
         @onDeleteSubmit="onDeleteSubmit()"
-        :customer="customer"
+        :item="item"
         :isNew="isNew"
-      ></EditCustomer>
+      ></EditItem>
     </b-modal>
   </div>
 </template>
@@ -59,32 +89,34 @@
 import DataService from "@/services/DataService";
 
 export default {
-  name: "Customers",
+  name: "Inventory",
   data() {
     return {
-      total: 200,
-      perPage: 20,
+      totalItems: null,
+      perPage: 15,
       currentPage: 1,
       selected: null,
-      customer: {},
+      item: {},
       tab: 0,
-      customers: [],
+      items: [],
       columns: [
         {
-          field: "streetAddress",
-          label: "Street Address",
+          field: "partNumber",
+          label: "Part Number",
+          width: 250,
           searchable: true,
           sortable: true
         },
         {
-          field: "city",
-          label: "City",
+          field: "description",
+          label: "Description",
           searchable: true,
           sortable: true
         },
         {
-          field: "propertyName",
-          label: "Property Name",
+          field: "price",
+          label: "Price ($)",
+          width: 110,
           searchable: true,
           sortable: true
         }
@@ -94,14 +126,14 @@ export default {
     };
   },
   components: {
-    EditCustomer: require("@/components/Customers/EditCustomer.vue").default
+    EditItem: require("@/components/Inventory/EditItem.vue").default
   },
   methods: {
-    getCustomers: function() {
-      DataService.getCustomers()
-        .then(customers => {
-          this.customers = customers.data;
-          this.total = this.customers.length;
+    getItems: function() {
+      DataService.getAllItems()
+        .then(items => {
+          this.items = items.data;
+          this.totalItems = this.items.length;
         })
         .catch(() => {});
     },
@@ -111,75 +143,43 @@ export default {
       this.isNew = false;
     },
     onNew: function() {
-      this.customer = {
-        billingMethod: null,
-        city: null,
-        contactEmail: null,
-        contactName: null,
-        contactPhone: null,
-        createdAt: null,
-        error: null,
-        gateDetails: [],
-        managementCompany: null,
-        propertyName: "",
-        propertyType: null,
-        serviceAddress: null,
-        streetAddress: null,
-        string_id: null,
-        zipCode: null
-      };
+      this.item = {};
       this.isNew = true;
       this.isEditActive = true;
     },
     onNewSubmit: function() {
-      this.customers.push(this.customer);
-      this.customer = {};
+      this.items.push(this.item);
+      this.item = {};
       this.closeEditModal();
     },
     onEdit: function() {
-      if (this.customer.gateDetails == null) {
-        this.customer.gateDetails = [];
-      }
       if (this.isNew) {
-        this.customer = {
-          string_id: "",
-          propertyName: "",
-          propertyType: "",
-          streetAddress: "",
-          city: "",
-          zipCode: null,
-          contactName: "",
-          contactPhone: "",
-          contactEmail: "",
-          billingMethod: "",
-          gateDetails: []
+        this.item = {
+          partNumber: "",
+          description: "",
+          price: 0
         };
       } else {
-        this.customer = Object.assign({}, this.selected);
+        this.item = Object.assign({}, this.selected);
       }
       this.isEditActive = true;
     },
     onEditSubmit: function() {
-      this.customers.splice(
-        this.customers.indexOf(this.selected),
-        1,
-        this.customer
-      );
+      this.items.splice(this.items.indexOf(this.selected), 1, this.item);
       this.closeEditModal();
     },
     onDeleteSubmit() {
-      this.customers.splice(this.customers.indexOf(this.selected), 1);
-      this.total--;
+      this.items.splice(this.items.indexOf(this.selected), 1);
       this.closeEditModal();
     }
   },
   mounted() {
-    this.getCustomers();
+    this.getItems();
   }
 };
 </script>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro");
 
 * {

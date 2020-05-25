@@ -26,6 +26,21 @@ export default new Router({
       component: require("@/components/History/ServiceHistory.vue").default
     },
     {
+      path: "/Maintenance",
+      name: "Maintenance",
+      component: require("@/components/Maintenance.vue").default
+    },
+    {
+      path: "/Technicians",
+      name: "Technicians",
+      component: require("@/components/Technicians.vue").default
+    },
+    {
+      path: "/Inventory",
+      name: "Inventory",
+      component: require("@/components/Inventory.vue").default
+    },
+    {
       path: "*",
       redirect: "/"
     }

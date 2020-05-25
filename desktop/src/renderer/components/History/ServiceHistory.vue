@@ -11,6 +11,8 @@
         hoverable
         detailed
         detail-key="string_id"
+        @details-open="(row, index) => closeAllOtherTableRows(row, index)"
+        :opened-detailed="openTableRow"
       >
         <b-input
           slot="searchable"
@@ -21,25 +23,80 @@
           size="is-small"
         />
         <template slot="detail" slot-scope="props">
-          <div>
-            <article class="panel is-link">
-              <p class="panel-tabs">
-                <a :class="[tab === 0 ? 'is-active' : '']" @click="tab = 0"
-                  >Work Completed</a
-                >
-                <a :class="[tab === 1 ? 'is-active' : '']" @click="tab = 1"
-                  >Parts Used</a
-                >
-                <a :class="[tab === 2 ? 'is-active' : '']" @click="tab = 2"
-                  >Charges</a
-                >
-              </p>
-              <div class="panel-block" v-if="tab === 0">
-                {{ props.row.customer.serviceAddress }}
+          <b-tabs v-model="tab" class="is-marginless">
+            <b-tab-item label="Work Completed" active-class="is-active">
+            </b-tab-item>
+            <b-tab-item label="Parts Used" active-class="is-active">
+            </b-tab-item>
+            <b-tab-item label="Charges" active-class="is-active"> </b-tab-item>
+          </b-tabs>
+          <div class="container" v-if="tab === 0">
+            <b-collapse
+              class="card"
+              animation="slide"
+              v-for="(issue, index) in props.row.issues"
+              :key="index"
+              :open="isOpen == index"
+              @open="isOpen = index"
+            >
+              <div
+                slot="trigger"
+                slot-scope="props"
+                class="card-header"
+                role="button"
+              >
+                <p class="card-header-title">
+                  For the problem at {{ issue.location }}
+                </p>
+                <a class="card-header-icon"
+                  ><b-icon :icon="props.open ? 'menu-up' : 'menu-down'"></b-icon
+                ></a>
               </div>
-              <div class="panel-block" v-if="tab === 1"></div>
-              <div class="panel-block" v-if="tab === 2"></div>
-            </article>
+              <div class="card-content">
+                <div class="content">
+                  {{ issue.resolution }}
+                </div>
+              </div>
+            </b-collapse>
+          </div>
+          <div class="container" v-if="tab === 1">
+            <div
+              v-if="props.row.partsUsed.length === 0"
+              class="container has-text-grey has-text-centered"
+            >
+              <p>
+                <b-icon icon="emoticon-sad"> </b-icon>
+              </p>
+              <p>
+                No parts were used.
+              </p>
+            </div>
+            <div v-else class="">
+              <b-table
+                :data="
+                  props.row.partsUsed.length === 0 ? [] : props.row.partsUsed
+                "
+                :columns="partsColumns"
+              >
+              </b-table>
+            </div>
+          </div>
+          <div class="container" v-if="tab === 2">
+            <div class="columns">
+              <div class="column is-half">
+                Started at: {{ getTime(props.row.timeStarted) }}<br />
+                Ended at: {{ getTime(props.row.timeEnded) }}<br />
+                Completed on: {{ getDate(props.row.timeStarted) }}<br />
+                Dispatched on: {{ getDateTime(props.row.date) }}
+              </div>
+              <div class="column is-half">
+                Total time:
+                {{ getTotalTime(props.row.timeStarted, props.row.timeEnded) }}
+                <br />
+                Subtotal: $Do it yourself lol (pending)<br />
+                Labor: $lazy (pending)
+              </div>
+            </div>
           </div>
         </template>
       </b-table>
@@ -51,7 +108,7 @@
 import DataService from "@/services/DataService";
 
 export default {
-  name: "Customers",
+  name: "ServiceHistory",
   data() {
     return {
       total: 200,
@@ -73,15 +130,16 @@ export default {
           searchable: true,
           sortable: true
         }
-        // {
-        //   field: "city",
-        //   label: "City",
-        //   searchable: true,
-        //   sortable: true
-        // }
+      ],
+      partsColumns: [
+        { field: "description", label: "Name", sortable: true },
+        { field: "quantity", label: "Quantity" },
+        { field: "price", label: "Price", sortable: true }
       ],
       isEditActive: false,
-      isNew: false
+      isNew: false,
+      isOpen: -1,
+      openTableRow: []
     };
   },
   components: {
@@ -99,9 +157,27 @@ export default {
       this.customer = null;
       this.isNew = false;
     },
-    toggle: function(row) {
-      this.$refs.table.toggleDetails(row);
-      //   this.$refs.table.
+    closeAllOtherTableRows(row, index) {
+      this.openTableRow = [row.string_id];
+    },
+    getDate(dateString) {
+      let date = new Date(dateString);
+      return date.toDateString();
+    },
+    getTime(dateString) {
+      let date = new Date(dateString);
+      return date.toLocaleTimeString();
+    },
+    getTotalTime(start, end) {
+      let timeElapsed = new Date(end) - new Date(start);
+
+      if (timeElapsed < 60000) return "<1 minute";
+
+      return Math.floor(timeElapsed / 60000) + " minutes";
+    },
+    getDateTime(dateString) {
+      let date = new Date(dateString);
+      return date.toLocaleString();
     }
   },
   mounted() {
