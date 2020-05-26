@@ -87,14 +87,16 @@
                 Started at: {{ getTime(props.row.timeStarted) }}<br />
                 Ended at: {{ getTime(props.row.timeEnded) }}<br />
                 Completed on: {{ getDate(props.row.timeStarted) }}<br />
-                Dispatched on: {{ getDateTime(props.row.date) }}
+                Dispatched on: {{ getDateTime(props.row.dispatched) }}
               </div>
               <div class="column is-half">
                 Total time:
                 {{ getTotalTime(props.row.timeStarted, props.row.timeEnded) }}
                 <br />
-                Subtotal: $Do it yourself lol (pending)<br />
-                Labor: $lazy (pending)
+                Subtotal: ${{ props.row.subTotal }}<br />
+                Labor: ${{ props.row.labor }}<br />
+                Tax: ${{ props.row.tax }}<br />
+                Total: ${{ props.row.total }}
               </div>
             </div>
           </div>

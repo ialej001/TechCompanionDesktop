@@ -11,10 +11,7 @@
             <p>Click below to add a new call</p>
             <br />
 
-            <b-button
-              class="is-success is-large"
-              @click="isNewCallModalActive = true"
-            >
+            <b-button class="is-success is-large" @click="onNew()">
               New
             </b-button>
             <br />
@@ -93,7 +90,7 @@
           @close="closeNewCallModal()"
           @onNewCallSubmit="onNewCallSubmit()"
           :customers="customers"
-          :selectedCallDetails.sync="selectedCallDetails"
+          :newCall="newCall"
         ></NewCallModal>
       </b-modal>
 
@@ -149,11 +146,8 @@ export default {
       todaysCalls: [],
       customers: [],
       index: "",
-      selectedCallDetails: {
-        customer: {},
-        date: "",
-        descriptionOfProblem: ""
-      },
+      selectedCallDetails: {},
+      newCall: {},
       isNewCallModalActive: false,
       isUpdateCallModalActive: false,
       isCancelCallModalActive: false,
@@ -180,9 +174,18 @@ export default {
     closeCancelCallModal: function() {
       this.isCancelCallModalActive = false;
     },
+    onNew: function() {
+      this.newCall = {
+        string_id: null,
+        customer: {},
+        techAssigned: null,
+        issues: []
+      };
+      this.isNewCallModalActive = true;
+    },
     onNewCallSubmit: function() {
+      this.todaysCalls.push(this.newCall);
       this.isNewCallModalActive = false;
-      this.todaysCalls.push(this.selectedCallDetails);
     },
     onUpdateCallSubmit: function() {
       this.isUpdateCallModalActive = false;

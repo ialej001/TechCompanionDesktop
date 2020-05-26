@@ -146,7 +146,7 @@
             <b-button @click="updateIssue()">Add issue </b-button>
             <!-- dynamically add whatever was entered from above-->
             <br />
-            <div v-for="(issue, index) in issues" :key="index">
+            <div v-for="(issue, index) in newCall.issues" :key="index">
               <p>
                 Location {{ index + 1 }}: {{ issue.location }} -
                 {{ issue.problem }}
@@ -213,6 +213,9 @@ export default {
   props: {
     customers: {
       type: Array
+    },
+    newCall: {
+      type: Object
     }
   },
   components: {
@@ -298,17 +301,16 @@ export default {
       switch (this.callType) {
         case "workOrder":
           this.customer.zipCode = parseInt(this.customer.zipCode);
-          callToBeDispatched = {
-            customer: Object.assign({}, this.customer),
-            techAssigned: this.techAssigned,
-            issues: this.issues
-          };
-          console.log(callToBeDispatched);
+          this.newCall.customer = Object.assign({}, this.customer);
+          this.newCall.techAssigned = this.techAssigned;
+
           // send the info to the DB
-          await DataService.dispatchWorkOrder(callToBeDispatched)
-            .then(() => {
+          await DataService.dispatchWorkOrder(this.newCall)
+            .then(result => {
               this.isSubmissionReceived = true;
-              this.$emit("onNewCallSubmit");
+              this.newCall.string_id = result.data.string_id;
+              this.$emit("update:newCall", result.data);
+              this.$emit("onNewCallSubmit", result.data);
             })
             .catch((this.isSendingData = false));
           break;
@@ -339,7 +341,7 @@ export default {
         });
       }
 
-      this.issues.push({
+      this.newCall.issues.push({
         location: this.locationToAdd,
         problem: this.descriptionToAdd,
         resolution: null
@@ -391,7 +393,7 @@ export default {
             return false;
           // break;
           case 2:
-            if (this.issues.length > 0) return false;
+            if (this.newCall.issues.length > 0) return false;
           // break;
           case 3:
             if (this.techAssigned === "") return true;
@@ -408,7 +410,6 @@ export default {
     },
     addresses: function() {
       let addresses = [];
-      console.log(this.customers.length);
       this.customers.forEach(customer => {
         addresses.push(customer.serviceAddress);
       });

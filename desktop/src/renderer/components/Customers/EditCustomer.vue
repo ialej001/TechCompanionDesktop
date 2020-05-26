@@ -18,6 +18,7 @@
           <li active-class="is-active" @click="tab = 0"><a>Property</a></li>
           <li active-class="is-active" @click="tab = 1"><a>Contact</a></li>
           <li active-class="is-active" @click="tab = 2"><a>Locations</a></li>
+          <li active-class="is-active" @click="tab = 3"><a>Billing</a></li>
         </ul>
       </div>
       <div class="container" v-if="tab == 0">
@@ -180,6 +181,21 @@
           </b-field>
         </div>
       </div>
+      <div class="container" v-if="tab == 3">
+        <b-field label="Billing method">
+          <b-select placeholder="Select one" v-model="customer.billingMethod">
+            <option value="COD">COD</option>
+            <option value="NET30">NET30</option>
+            <option value="NET60">NET60</option>
+          </b-select>
+        </b-field>
+        <b-field label="Labor Rate">
+          <b-input type="number" v-model="customer.laborRate"></b-input>
+        </b-field>
+        <b-field label="Tax Rate">
+          <b-input type="number" v-model="customer.taxRate"></b-input>
+        </b-field>
+      </div>
     </section>
     <footer class="modal-card-foot">
       <div>
@@ -266,7 +282,6 @@ export default {
       this.defaultOpenedDetails = [row.location];
     },
     onDeleteLocation(row) {
-      console.log(row);
       this.$buefy.dialog.confirm({
         title: "Remove location",
         message:
@@ -319,7 +334,6 @@ export default {
       if (this.customer.propertyName == null) this.customer.propertyName = "";
       await DataService.createCustomer(this.customer)
         .then(result => {
-          console.log(result.data);
           this.customer.string_id = result.data.string_id;
           this.$emit("update:customer", result.data);
           this.$emit("onNewSubmit");

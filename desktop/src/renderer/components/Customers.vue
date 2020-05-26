@@ -113,6 +113,8 @@ export default {
     onNew: function() {
       this.customer = {
         billingMethod: null,
+        laborRate: null,
+        taxRate: null,
         city: null,
         contactEmail: null,
         contactName: null,

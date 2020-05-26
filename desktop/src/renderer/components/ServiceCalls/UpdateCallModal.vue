@@ -139,7 +139,6 @@ export default {
         .then(response => {
           this.callToBeUpdated = {};
           this.customer = {};
-          console.log(response.data);
           this.$emit("update:selectedCallDetails", response.data);
           this.$emit("onUpdateCallSubmit");
         })
