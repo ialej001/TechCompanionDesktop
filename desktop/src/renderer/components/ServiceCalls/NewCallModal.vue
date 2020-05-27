@@ -116,19 +116,20 @@
             <b-button @click="updateIssue()">Add issue </b-button>
             <!-- dynamically add whatever was entered from above-->
             <br />
-            <div v-for="(issue, index) in issues" :key="index">
+            <div v-for="(issue, index) in newCall.issues" :key="index">
               <p>
-                Location {{ index + 1 }}: {{ issue.location }} -
+                Issue {{ index + 1 }}: {{ issue.location }} -
                 {{ issue.problem }}
               </p>
             </div>
           </b-step-item>
 
+          <!-- Existing customer -->
           <b-step-item v-else step="3" label="Location" :clickable="false">
             <b-field label="Gate location">
-              <b-select v-model="locationToAdd">
+              <b-select v-model="locationToAdd" placeholder="Select one">
                 <option
-                  v-for="(detail, index) in customer.gateDetails"
+                  v-for="(detail, index) in newCall.customer.gateDetails"
                   :value="detail.location"
                   :key="index"
                 >
@@ -136,19 +137,24 @@
                 </option>
               </b-select>
             </b-field>
-            <b-field label="Problem description">
+            <b-field label="Description of the problem">
               <b-input
                 v-model="descriptionToAdd"
                 maxlength="300"
                 type="textarea"
+                placeholder="What's wrong?"
               ></b-input>
             </b-field>
             <b-button @click="updateIssue()">Add issue </b-button>
             <!-- dynamically add whatever was entered from above-->
             <br />
-            <div v-for="(issue, index) in newCall.issues" :key="index">
+            <div
+              class="container"
+              v-for="(issue, index) in newCall.issues"
+              :key="index"
+            >
               <p>
-                Location {{ index + 1 }}: {{ issue.location }} -
+                Issue {{ index + 1 }}: {{ issue.location }} -
                 {{ issue.problem }}
               </p>
             </div>
@@ -156,7 +162,7 @@
 
           <b-step-item step="4" label="Tech" :clickable="false">
             <b-field label="Assign to...">
-              <b-select v-model="techAssigned" placeholder="Technician">
+              <b-select v-model="newCall.techAssigned" placeholder="Technician">
                 <option
                   v-for="tech in technicians"
                   :value="tech.name"
@@ -176,6 +182,7 @@
           </b-button>
           <b-button
             v-if="activeStep == 3 && !isSendingData"
+            :disabled="canProceed"
             type="is-success"
             native-type="submit"
             style="margin-right: 10px"
@@ -207,6 +214,7 @@
 
 <script>
 import DataService from "@/services/DataService";
+import Customer from "@/models/Customer.js";
 
 export default {
   name: "NewCallModal",
@@ -225,10 +233,7 @@ export default {
     return {
       activeStep: 0,
       callType: null,
-      isSearchingCustomer: false,
       isNewCustomer: false,
-      hasFoundCustomer: false,
-      searchQuery: "",
       errors: {
         propertyType: false,
         streetAddress: false,
@@ -241,11 +246,10 @@ export default {
       customer: {},
       customerIndex: -1,
       techAssigned: "",
-      issues: [],
       isSendingData: false,
       isSubmissionReceived: false,
-      locationToAdd: "",
-      descriptionToAdd: "",
+      locationToAdd: null,
+      descriptionToAdd: null,
       technicians: [
         {
           id: 1,
@@ -275,24 +279,10 @@ export default {
     clearCustomerSearch: function() {
       this.selected = -1;
       this.address = "";
-      this.customer = Object.assign({}, {});
+      this.newCall.customer = Object.assign({}, {});
     },
     createNewCustomer: function() {
-      this.customer = Object.assign(
-        {},
-        {
-          propertyName: "",
-          propertyType: "",
-          streetAddress: "",
-          city: "",
-          zipCode: "",
-          serviceAddress: "",
-          contactName: "",
-          contactPhone: "",
-          contactEmail: "",
-          gateDetails: []
-        }
-      );
+      this.newCall.customer = new Customer();
       this.isNewCustomer = true;
     },
     addToDatabase: async function() {
@@ -300,10 +290,7 @@ export default {
       let callToBeDispatched = {};
       switch (this.callType) {
         case "workOrder":
-          this.customer.zipCode = parseInt(this.customer.zipCode);
-          this.newCall.customer = Object.assign({}, this.customer);
-          this.newCall.techAssigned = this.techAssigned;
-
+          this.newCall.customer.zipCode = parseInt(this.customer.zipCode);
           // send the info to the DB
           await DataService.dispatchWorkOrder(this.newCall)
             .then(result => {
@@ -322,7 +309,7 @@ export default {
       // search through gateDetails and set an index if the pending location is found
       let indexToModify = -1;
 
-      this.customer.gateDetails.forEach((detail, index) => {
+      this.newCall.customer.gateDetails.forEach((detail, index) => {
         if (detail.location.localeCompare(this.locationToAdd)) {
           indexToModify = index;
         }
@@ -330,7 +317,7 @@ export default {
 
       // if not found, create new gateDetails object
       if (indexToModify == -1) {
-        this.customer.gateDetails.push({
+        this.newCall.customer.gateDetails.push({
           location: this.locationToAdd,
           accessCodes: "",
           operator1: "",
@@ -347,8 +334,8 @@ export default {
         resolution: null
       });
 
-      this.locationToAdd = "";
-      this.descriptionToAdd = "";
+      this.locationToAdd = null;
+      this.descriptionToAdd = null;
     },
     setCustomerIndex: function(index) {
       this.customerIndex = index;
@@ -377,26 +364,25 @@ export default {
             if (this.selected === -1 && !this.isNewCustomer) {
               return true;
             }
-            if (this.customer.propertyType === "") return true;
+            if (this.newCall.customer.propertyType === "") return true;
 
-            if (this.customer.streetAddress === "") return true;
+            if (this.newCall.customer.streetAddress === "") return true;
 
-            if (this.customer.city === "") return true;
+            if (this.newCall.customer.city === "") return true;
 
-            if (isNaN(parseInt(this.customer.zipCode))) return true;
+            if (isNaN(parseInt(this.newCall.customer.zipCode))) return true;
 
-            if (this.customer.contactName === "") return true;
+            if (this.newCall.customer.contactName === "") return true;
 
-            if (this.customer.contactPhone === "") return true;
+            if (this.newCall.customer.contactPhone === "") return true;
 
-            return false;
             return false;
           // break;
           case 2:
             if (this.newCall.issues.length > 0) return false;
           // break;
           case 3:
-            if (this.techAssigned === "") return true;
+            if (this.newCall.techAssigned === "") return true;
             break;
           default:
             // step 1/activestep 0
@@ -442,7 +428,7 @@ export default {
         return;
       }
 
-      this.customer = Object.assign({}, this.customers[value]);
+      this.newCall.customer = Object.assign({}, this.customers[value]);
       this.hasFoundCustomer = true;
     }
   }

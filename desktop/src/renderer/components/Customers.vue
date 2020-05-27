@@ -57,6 +57,7 @@
 
 <script>
 import DataService from "@/services/DataService";
+import Customer from "@/models/Customer.js";
 
 export default {
   name: "Customers",
@@ -111,25 +112,7 @@ export default {
       this.isNew = false;
     },
     onNew: function() {
-      this.customer = {
-        billingMethod: null,
-        laborRate: null,
-        taxRate: null,
-        city: null,
-        contactEmail: null,
-        contactName: null,
-        contactPhone: null,
-        createdAt: null,
-        error: null,
-        gateDetails: [],
-        managementCompany: null,
-        propertyName: "",
-        propertyType: null,
-        serviceAddress: null,
-        streetAddress: null,
-        string_id: null,
-        zipCode: null
-      };
+      this.customer = new Customer();
       this.isNew = true;
       this.isEditActive = true;
     },

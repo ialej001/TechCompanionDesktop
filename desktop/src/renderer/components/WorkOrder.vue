@@ -131,6 +131,7 @@
 
 <script>
 import DataService from "@/services/DataService";
+import ServiceCall from "@/models/ServiceCall.js";
 
 export default {
   name: "ServiceCall",
@@ -175,12 +176,7 @@ export default {
       this.isCancelCallModalActive = false;
     },
     onNew: function() {
-      this.newCall = {
-        string_id: null,
-        customer: {},
-        techAssigned: null,
-        issues: []
-      };
+      this.newCall = new ServiceCall();
       this.isNewCallModalActive = true;
     },
     onNewCallSubmit: function() {
