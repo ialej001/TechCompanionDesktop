@@ -3,11 +3,11 @@
     <div class="container">
       <b-table
         :data="workOrders"
-        :columns="columns"
         :paginated="true"
         :per-page="perPage"
         :current-page.sync="currentPage"
-        default-sort="streetAddress"
+        default-sort="timeEnded"
+        default-sort-direction="desc"
         hoverable
         detailed
         detail-key="string_id"
@@ -22,6 +22,26 @@
           icon="magnify"
           size="is-small"
         />
+        <template slot-scope="props">
+          <b-table-column
+            field="customer.serviceAddress"
+            label="Full Address"
+            searchable
+            sortable
+            >{{ props.row.customer.serviceAddress }}</b-table-column
+          >
+          <b-table-column
+            field="techAssigned"
+            label="Technician"
+            searchable
+            sortable
+          >
+            {{ props.row.techAssigned }}
+          </b-table-column>
+          <b-table-column field="timeEnded" label="Date Completed" sortable>
+            {{ new Date(props.row.timeEnded).toDateString() }}
+          </b-table-column>
+        </template>
         <template slot="detail" slot-scope="props">
           <b-tabs v-model="tab" class="is-marginless">
             <b-tab-item label="Work Completed" active-class="is-active">
@@ -119,20 +139,6 @@ export default {
       customer: null,
       tab: 0,
       workOrders: [],
-      columns: [
-        {
-          field: "customer.serviceAddress",
-          label: "Full Address",
-          searchable: true,
-          sortable: true
-        },
-        {
-          field: "techAssigned",
-          label: "Technician",
-          searchable: true,
-          sortable: true
-        }
-      ],
       partsColumns: [
         { field: "description", label: "Name", sortable: true },
         { field: "quantity", label: "Quantity" },

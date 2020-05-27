@@ -134,7 +134,7 @@ import DataService from "@/services/DataService";
 import ServiceCall from "@/models/ServiceCall.js";
 
 export default {
-  name: "ServiceCall",
+  name: "Dispatch",
   components: {
     CallDetailsModal: require("@/components/ServiceCalls/CallDetailsModal.vue")
       .default

@@ -13,7 +13,7 @@ export default new Router({
     {
       path: "/ServiceCall",
       name: "ServiceCall",
-      component: require("@/components/WorkOrder.vue").default
+      component: require("@/components/Dispatch.vue").default
     },
     {
       path: "/Customers",

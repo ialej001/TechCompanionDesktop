@@ -13,15 +13,40 @@
       ></span>
     </header>
     <section class="modal-card-body">
-      <div class="tabs">
-        <ul>
-          <li active-class="is-active" @click="tab = 0"><a>Property</a></li>
-          <li active-class="is-active" @click="tab = 1"><a>Contact</a></li>
-          <li active-class="is-active" @click="tab = 2"><a>Locations</a></li>
-          <li active-class="is-active" @click="tab = 3"><a>Billing</a></li>
-        </ul>
-      </div>
-      <div class="container" v-if="tab == 0">
+      <b-tabs v-model="tab" type="is-boxed" class="is-marginless">
+        <b-tab-item>
+          <template slot="header">
+            Property
+            <b-icon
+              v-if="errors.propertyTab"
+              type="is-danger"
+              icon="alert-circle"
+            ></b-icon>
+          </template>
+        </b-tab-item>
+        <b-tab-item>
+          <template slot="header">
+            Contact
+            <b-icon
+              v-if="errors.contactTab"
+              type="is-danger"
+              icon="alert-circle"
+            ></b-icon
+          ></template>
+        </b-tab-item>
+        <b-tab-item active-class="is-active" label="Locations"></b-tab-item>
+        <b-tab-item>
+          <template slot="header">
+            Billing
+            <b-icon
+              v-if="errors.billingTab"
+              type="is-danger"
+              icon="alert-circle"
+            ></b-icon>
+          </template>
+        </b-tab-item>
+      </b-tabs>
+      <div class="container" v-if="tab === 0">
         <div class="columns is-multiline">
           <div class="column is-two-thirds">
             <b-field label="Property Name">
@@ -29,7 +54,11 @@
             </b-field>
           </div>
           <div class="column is-one-third">
-            <b-field label="Property Type">
+            <b-field
+              label="Property Type"
+              :type="errors.propertyType == null ? '' : 'is-danger'"
+              :message="errors.propertyType"
+            >
               <b-select
                 v-model="customer.propertyType"
                 placeholder="Select one"
@@ -51,32 +80,57 @@
             </b-field>
           </div>
           <div class="column is-6">
-            <b-field required label="Street Address">
+            <b-field
+              required
+              label="Street Address"
+              :type="errors.streetAddress == null ? '' : 'is-danger'"
+              :message="errors.streetAddress"
+            >
               <b-input v-model="customer.streetAddress"></b-input>
             </b-field>
           </div>
           <div class="column is-4">
-            <b-field required label="City">
+            <b-field
+              required
+              label="City"
+              :type="errors.city == null ? '' : 'is-danger'"
+              :message="errors.city"
+            >
               <b-input v-model="customer.city"></b-input>
             </b-field>
           </div>
           <div class="column is-2">
-            <b-field required label="Zip code">
+            <b-field
+              required
+              label="Zip code"
+              :type="errors.zipCode == null ? '' : 'is-danger'"
+              :message="errors.zipCode"
+            >
               <b-input v-model="customer.zipCode"></b-input>
             </b-field>
           </div>
         </div>
       </div>
 
-      <div class="container" v-if="tab == 1">
+      <div class="container" v-if="tab === 1">
         <div class="columns is-multiline">
           <div class="column is-6">
-            <b-field required label="Primary contact">
+            <b-field
+              required
+              label="Primary contact"
+              :type="errors.contactName == null ? '' : 'is-danger'"
+              :message="errors.contactName"
+            >
               <b-input v-model="customer.contactName"></b-input>
             </b-field>
           </div>
           <div class="column is-4">
-            <b-field required label="Phone number">
+            <b-field
+              required
+              label="Phone number"
+              :type="errors.contactPhone == null ? '' : 'is-danger'"
+              :message="errors.contactPhone"
+            >
               <b-input v-model="customer.contactPhone"></b-input>
             </b-field>
           </div>
@@ -88,7 +142,7 @@
         </div>
       </div>
 
-      <div class="container" v-if="tab == 2">
+      <div class="container" v-if="tab === 2">
         <div
           v-if="!isAddingNewLocation"
           class="columns is-multiline is-centered"
@@ -181,7 +235,7 @@
           </b-field>
         </div>
       </div>
-      <div class="container" v-if="tab == 3">
+      <div class="container" v-if="tab === 3">
         <b-field label="Billing method">
           <b-select placeholder="Select one" v-model="customer.billingMethod">
             <option value="COD">COD</option>
@@ -189,11 +243,19 @@
             <option value="NET60">NET60</option>
           </b-select>
         </b-field>
-        <b-field label="Labor Rate">
-          <b-input type="number" v-model="customer.laborRate"></b-input>
+        <b-field
+          label="Labor Rate ($/hr)"
+          :type="errors.laborRate == null ? '' : 'is-danger'"
+          :message="errors.laborRate"
+        >
+          <b-input v-model="customer.laborRate"></b-input>
         </b-field>
-        <b-field label="Tax Rate">
-          <b-input type="number" v-model="customer.taxRate"></b-input>
+        <b-field
+          label="Tax Rate (%)"
+          :type="errors.taxRate == null ? '' : 'is-danger'"
+          :message="errors.taxRate"
+        >
+          <b-input v-model="customer.taxRate"></b-input>
         </b-field>
       </div>
     </section>
@@ -211,7 +273,7 @@
           v-if="!isAddingNewLocation"
           style="margin-right: 10px"
           type="is-success"
-          @click="submit"
+          @click="validator()"
           >{{ submitButtonLabel }}</b-button
         >
         <b-button @click="createLocation()" class="is-info" v-else
@@ -245,6 +307,19 @@ export default {
       detailOpenIndex: -1,
       editDetailIndex: null,
       enableLocationSearch: false,
+      errors: {
+        propertyTab: false,
+        propertyType: null,
+        streetAddress: null,
+        city: null,
+        zipCode: null,
+        contactTab: false,
+        contactName: null,
+        contactPhone: null,
+        billingTab: false,
+        laborRate: null,
+        taxRate: null
+      },
       location: {
         location: "",
         accessCodes: "",
@@ -339,6 +414,75 @@ export default {
           this.$emit("onNewSubmit");
         })
         .catch(() => {});
+    },
+    validator: function() {
+      for (let key in this.errors) {
+        if (this.errors[key] != null) {
+          console.log("Key: " + key + ", value: " + this.errors[key]);
+          this.$set(this.errors, key, null);
+          console.log("Key: " + key + ", value: " + this.errors[key]);
+        }
+      }
+      this.errors.propertyTab = false;
+      this.errors.contactTab = false;
+      this.errors.billingTab = false;
+
+      // property validation
+      if (this.customer.propertyType === "") {
+        this.$set(this.errors, "propertyType", "Please select one");
+        this.errors.propertyTab = true;
+      }
+      if (this.customer.streetAddress === "") {
+        this.errors.streetAddress = "Enter a street address.";
+        this.errors.propertyTab = true;
+      } else if (this.customer.streetAddress.length < 3) {
+        this.errors.streetAddress = "Enter a full address.";
+        this.errors.propertyTab = true;
+      }
+      if (this.customer.city === "") {
+        this.errors.city = "Enter a city name.";
+        this.errors.propertyTab = true;
+      }
+      if (isNaN(parseInt(this.customer.zipCode))) {
+        this.errors.zipCode = "Enter a zip code.";
+        this.errors.propertyTab = true;
+      } else {
+        this.customer.zipCode = parseInt(this.customer.zipCode);
+      }
+
+      // contact validation
+      if (this.customer.contactName === "") {
+        this.errors.contactName = "Enter a contact name.";
+        this.errors.contactTab = true;
+      }
+      if (this.customer.contactPhone === "") {
+        this.errors.contactPhone = "Enter a phone number";
+        this.errors.contactTab = true;
+      } else if (this.customer.contactPhone[0] != "(") {
+        this.errors.contactPhone = "Missing area code";
+        this.errors.contactTab = true;
+      }
+
+      // billing validation
+      if (isNaN(parseFloat(this.customer.laborRate))) {
+        this.$set(this.errors, "laborRate", "Need a labor rate ($/hr)");
+        this.errors.billingTab = true;
+      } else {
+        this.customer.laborRate = parseFloat(this.customer.laborRate);
+      }
+      if (isNaN(parseFloat(this.customer.taxRate))) {
+        this.$set(this.errors, "taxRate", "Need a tax rate (%)");
+        this.errors.billingTab = true;
+      } else {
+        this.customer.taxRate = parseFloat(this.customer.taxRate);
+      }
+
+      // check if any errors have been set
+      for (let key in this.errors) {
+        if (this.errors[key] != null) return;
+      }
+      this.submit();
+      return;
     }
   }
 };
