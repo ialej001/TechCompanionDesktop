@@ -6,7 +6,7 @@
       >
         <div class="card">
           <div class="card-content has-text-centered">
-            <p v-if="!todaysCalls.length">No open work orders</p>
+            <p v-if="!incompleteCalls.length">No open work orders</p>
             <p v-else><br /></p>
             <p>Click below to add a new call</p>
             <br />
@@ -21,7 +21,7 @@
       </div>
       <!-- begin card iteration for all incomplete works orders-->
       <div
-        v-for="(call, index) in todaysCalls"
+        v-for="(call, index) in incompleteCalls"
         :key="index"
         class="column is-one-fifth-fullhd is-one-quarter-desktop is-one-third-tablet"
       >
@@ -64,9 +64,7 @@
                 <b-icon icon="dots-horizontal" size="is-small"></b-icon>
               </div>
 
-              <b-dropdown-item
-                aria-role="listitem"
-                @click="updateModalCallDetails(index)"
+              <b-dropdown-item aria-role="listitem" @click="onUpdate(index)"
                 >Update</b-dropdown-item
               >
               <b-dropdown-item
@@ -89,12 +87,16 @@
         <NewCallModal
           @close="closeNewCallModal()"
           @onNewCallSubmit="onNewCallSubmit()"
+          @onUpdateCallSubmit="
+            onUpdateCallSubmit(response, callIndexToBeUpdated)
+          "
           :customers="customers"
-          :newCall="newCall"
+          :callDetails="callDetails"
+          :isNewCall="isNewCall"
         ></NewCallModal>
       </b-modal>
 
-      <b-modal
+      <!-- <b-modal
         :active.sync="isUpdateCallModalActive"
         has-modal-card
         trap-focus
@@ -110,7 +112,7 @@
           :selectedCallDetails.sync="selectedCallDetails"
           :callIndexToBeUpdated="callIndexToBeUpdated"
         ></UpdateCallModal>
-      </b-modal>
+      </b-modal> -->
 
       <b-modal
         :active.sync="isCancelCallModalActive"
@@ -144,13 +146,14 @@ export default {
   },
   data() {
     return {
-      todaysCalls: [],
+      incompleteCalls: [],
       customers: [],
       index: "",
-      selectedCallDetails: {},
-      newCall: {},
+      // selectedCallDetails: {},
+      callDetails: {},
+      isNewCall: false,
       isNewCallModalActive: false,
-      isUpdateCallModalActive: false,
+      // isUpdateCallModalActive: false,
       isCancelCallModalActive: false,
       callIndexToBeUpdated: null,
       callIdToBeRemoved: ""
@@ -176,35 +179,44 @@ export default {
       this.isCancelCallModalActive = false;
     },
     onNew: function() {
-      this.newCall = new ServiceCall();
+      this.callDetails = new ServiceCall();
+      this.isNewCall = true;
       this.isNewCallModalActive = true;
     },
     onNewCallSubmit: function() {
-      this.todaysCalls.push(this.newCall);
+      this.incompleteCalls.push(this.callDetails);
       this.isNewCallModalActive = false;
+      this.isNewCall = false;
+      Object.assign(this.callDetails, {});
+    },
+    onUpdate: function(index) {
+      this.callDetails = Object.assign({}, this.incompleteCalls[index]);
+      this.callIndexToBeUpdated = index;
+      this.isNewCall = false;
+      this.isNewCallModalActive = true;
     },
     onUpdateCallSubmit: function() {
-      this.isUpdateCallModalActive = false;
-      this.todaysCalls.splice(
+      this.isNewCallModalActive = false;
+      this.incompleteCalls.splice(
         this.callIndexToBeUpdated,
         1,
-        this.selectedCallDetails
+        this.callDetails
       );
     },
     onCancelCallSubmit: function() {
       this.isCancelCallModalActive = false;
-      this.todaysCalls.splice(this.callIndexToBeUpdated, 1);
+      this.incompleteCalls.splice(this.callIndexToBeUpdated, 1);
     },
     loadTodaysWorkOrders: async function() {
       await DataService.getIncompleteWorkOrders()
         .then(workOrders => {
-          this.todaysCalls = workOrders.data.filter(function(item) {
+          this.incompleteCalls = workOrders.data.filter(function(item) {
             return item.customer;
           });
         })
         .catch(error => {
           this.error = error.response.data;
-          this.todaysCalls = [];
+          this.incompleteCalls = [];
         });
     },
     loadCustomers: async function() {
@@ -214,15 +226,9 @@ export default {
         })
         .catch(error => {});
     },
-    updateModalCallDetails: function(index) {
-      this.selectedCallDetails = Object.assign({}, this.todaysCalls[index]);
-      this.isUpdateCallModalActive = true;
-
-      this.callIndexToBeUpdated = index;
-    },
     cancelCallModal: function(index) {
       this.isCancelCallModalActive = true;
-      this.callIdToBeRemoved = this.todaysCalls[index].string_id;
+      this.callIdToBeRemoved = this.incompleteCalls[index].string_id;
     }
   },
   mounted() {
