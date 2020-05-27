@@ -205,6 +205,7 @@
                 class="container has-text-centered"
                 v-if="errors.issues != null"
               >
+                <br />
                 <p class="has-text-weight-medium has-text-danger is-italic">
                   {{ errors.issues }}
                 </p>
@@ -470,12 +471,10 @@ export default {
 
       this.callDetails.customer.gateDetails.forEach((detail, index) => {
         if (!detail.location.localeCompare(this.locationToAdd)) {
-          console.log(index);
           indexToModify = index;
         }
       });
 
-      console.log(indexToModify);
       // if not found, create new gateDetails object
       if (indexToModify == -1) {
         this.callDetails.customer.gateDetails.push({
@@ -543,9 +542,7 @@ export default {
       if (this.isNewCall ? this.activeStep == 1 : this.activeStep == 0) {
         for (let key in this.errors) {
           if (this.errors[key] != null) {
-            console.log("Key: " + key + ", value: " + this.errors[key]);
             this.$set(this.errors, key, null);
-            console.log("Key: " + key + ", value: " + this.errors[key]);
           }
         }
 

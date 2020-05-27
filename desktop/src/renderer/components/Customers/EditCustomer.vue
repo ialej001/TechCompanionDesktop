@@ -308,15 +308,15 @@ export default {
       editDetailIndex: null,
       enableLocationSearch: false,
       errors: {
-        propertyTab: false,
+        propertyTab: null,
         propertyType: null,
         streetAddress: null,
         city: null,
         zipCode: null,
-        contactTab: false,
+        contactTab: null,
         contactName: null,
         contactPhone: null,
-        billingTab: false,
+        billingTab: null,
         laborRate: null,
         taxRate: null
       },
@@ -397,7 +397,6 @@ export default {
       this.onEditSubmit();
     },
     onEditSubmit: async function() {
-      // console.log(this.customer.string_id);
       await DataService.updateCustomer(this.customer, this.customer.string_id)
         .then(result => {
           this.$emit("update:customer", result.data);
@@ -418,14 +417,12 @@ export default {
     validator: function() {
       for (let key in this.errors) {
         if (this.errors[key] != null) {
-          console.log("Key: " + key + ", value: " + this.errors[key]);
           this.$set(this.errors, key, null);
-          console.log("Key: " + key + ", value: " + this.errors[key]);
         }
       }
-      this.errors.propertyTab = false;
-      this.errors.contactTab = false;
-      this.errors.billingTab = false;
+      this.errors.propertyTab = null;
+      this.errors.contactTab = null;
+      this.errors.billingTab = null;
 
       // property validation
       if (this.customer.propertyType === "") {

@@ -112,7 +112,7 @@
         ></UpdateCallModal>
       </b-modal> -->
 
-      <b-modal
+      <!-- <b-modal
         :active.sync="isCancelCallModalActive"
         has-modal-card
         trap-focus
@@ -124,7 +124,7 @@
           @onCancelCallSubmit="onCancelCallSubmit()"
           :callIdToBeRemoved="callIdToBeRemoved"
         ></CancelCallModal>
-      </b-modal>
+      </b-modal> -->
     </div>
   </div>
 </template>
