@@ -67,9 +67,7 @@
               <b-dropdown-item aria-role="listitem" @click="onUpdate(index)"
                 >Update</b-dropdown-item
               >
-              <b-dropdown-item
-                @click="cancelCallModal(index)"
-                aria-role="listitem"
+              <b-dropdown-item @click="onCancelCall(index)" aria-role="listitem"
                 >Cancel</b-dropdown-item
               >
             </b-dropdown>
@@ -84,7 +82,7 @@
         aria-modal
         :canCancel="false"
       >
-        <NewCallModal
+        <CallDetailsModal
           @close="closeNewCallModal()"
           @onNewCallSubmit="onNewCallSubmit()"
           @onUpdateCallSubmit="
@@ -93,7 +91,7 @@
           :customers="customers"
           :callDetails="callDetails"
           :isNewCall="isNewCall"
-        ></NewCallModal>
+        ></CallDetailsModal>
       </b-modal>
 
       <!-- <b-modal
@@ -138,11 +136,12 @@ import ServiceCall from "@/models/ServiceCall.js";
 export default {
   name: "ServiceCall",
   components: {
-    NewCallModal: require("@/components/ServiceCalls/NewCallModal.vue").default,
-    UpdateCallModal: require("@/components/ServiceCalls/UpdateCallModal.vue")
-      .default,
-    CancelCallModal: require("@/components/ServiceCalls/CancelCallModal.vue")
+    CallDetailsModal: require("@/components/ServiceCalls/CallDetailsModal.vue")
       .default
+    // UpdateCallModal: require("@/components/ServiceCalls/UpdateCallModal.vue")
+    //   .default,
+    // CancelCallModal: require("@/components/ServiceCalls/CancelCallModal.vue")
+    //   .default
   },
   data() {
     return {
@@ -154,7 +153,7 @@ export default {
       isNewCall: false,
       isNewCallModalActive: false,
       // isUpdateCallModalActive: false,
-      isCancelCallModalActive: false,
+      // isCancelCallModalActive: false,
       callIndexToBeUpdated: null,
       callIdToBeRemoved: ""
     };
@@ -202,6 +201,28 @@ export default {
         1,
         this.callDetails
       );
+    },
+    onCancelCall(index) {
+      this.$buefy.dialog.confirm({
+        title: "Cancel service call",
+        message:
+          "Are you sure you want to <b>cancel</b> this call? This action cannot be undone.",
+        confirmText: "Cancel call",
+        type: "is-danger",
+        hasIcon: true,
+        onConfirm: async () => {
+          await DataService.cancelWorkOrder(
+            this.incompleteCalls[index].string_id
+          )
+            .then(() => {
+              this.incompleteCalls.splice(this.callIndexToBeUpdated, 1);
+              this.$buefy.toast.open("Account deleted!");
+            })
+            .catch(() => {
+              this.$buefy.toast.open("Something bad happened");
+            });
+        }
+      });
     },
     onCancelCallSubmit: function() {
       this.isCancelCallModalActive = false;
