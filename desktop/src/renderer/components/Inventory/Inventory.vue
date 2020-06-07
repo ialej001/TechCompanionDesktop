@@ -1,36 +1,6 @@
 <template>
   <div>
     <div class="container">
-      <!-- <div class="container">
-        <b-field grouped group-multiline>
-          <div class="control">
-            <b-switch v-model="isBordered">Bordered</b-switch>
-          </div>
-          <div class="control">
-            <b-switch v-model="isStriped">Striped</b-switch>
-          </div>
-          <div class="control">
-            <b-switch v-model="isNarrowed">Narrowed</b-switch>
-          </div>
-          <div class="control">
-            <b-switch v-model="isHoverable">Hoverable</b-switch>
-          </div>
-          <div class="control">
-            <b-switch v-model="isFocusable">Focusable</b-switch>
-          </div>
-          <div class="control">
-            <b-switch v-model="isLoading">Loading state</b-switch>
-          </div>
-          <div class="control">
-            <b-switch v-model="isEmpty">Empty</b-switch>
-          </div>
-          <div class="control">
-            <b-switch v-model="hasMobileCards"
-              >Mobile cards <small>(collapsed rows)</small></b-switch
-            >
-          </div> 
-        </b-field>
-      </div> -->
       <b-button disabled class="button is-success is-large" @click="onNew"
         ><b-icon icon="plus"></b-icon><span>New</span></b-button
       >
@@ -86,7 +56,7 @@
 </template>
 
 <script>
-import DataService from "@/services/DataService";
+import InventoryService from "@/services/InventoryService";
 
 export default {
   name: "Inventory",
@@ -130,7 +100,8 @@ export default {
   },
   methods: {
     getItems: function() {
-      DataService.getAllItems()
+      let user = this.$store.state.authentication.user.data;
+      InventoryService.getAllItems(user)
         .then(items => {
           this.items = items.data;
           this.totalItems = this.items.length;

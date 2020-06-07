@@ -51,7 +51,7 @@
 </template>
 
 <script>
-import DataService from "@/services/DataService";
+import InventoryService from "@/services/InventoryService";
 
 export default {
   name: "EditCustomer",
@@ -86,7 +86,8 @@ export default {
         type: "is-danger",
         hasIcon: true,
         onConfirm: async () => {
-          await DataService.deleteItem(this.item.string_id)
+          let user = this.$store.state.authentication.user.data;
+          await InventoryService.deleteItem(user, this.item.string_id)
             .then(() => {
               this.$emit("onDeleteSubmit");
               this.$buefy.toast.open("Item deleted!");
@@ -106,7 +107,8 @@ export default {
       this.onEditSubmit();
     },
     onEditSubmit: async function() {
-      await DataService.updateItem(this.item.string_id, this.item)
+      let user = this.$store.state.authentication.user.data;
+      await InventoryService.updateItem(user, this.item.string_id, this.item)
         .then(result => {
           this.$emit("update:item", result.data);
           this.$emit("onEditSubmit");
@@ -114,7 +116,8 @@ export default {
         .catch(() => {});
     },
     onNewSubmit: async function() {
-      await DataService.createItem(this.item)
+      let user = this.$store.state.authentication.user.data;
+      await InventoryService.createItem(user, this.item)
         .then(result => {
           this.$emit("update:item", result.data);
           this.$emit("onNewSubmit");

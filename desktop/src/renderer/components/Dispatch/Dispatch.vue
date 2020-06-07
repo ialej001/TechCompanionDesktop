@@ -93,72 +93,34 @@
           :isNewCall="isNewCall"
         ></CallDetailsModal>
       </b-modal>
-
-      <!-- <b-modal
-        :active.sync="isUpdateCallModalActive"
-        has-modal-card
-        trap-focus
-        aria-role="dialog"
-        aria-modal
-        :canCancel="false"
-      >
-        <UpdateCallModal
-          @close="closeUpdateCallModal()"
-          @onUpdateCallSubmit="
-            onUpdateCallSubmit(response, callIndexToBeUpdated)
-          "
-          :selectedCallDetails.sync="selectedCallDetails"
-          :callIndexToBeUpdated="callIndexToBeUpdated"
-        ></UpdateCallModal>
-      </b-modal> -->
-
-      <!-- <b-modal
-        :active.sync="isCancelCallModalActive"
-        has-modal-card
-        trap-focus
-        aria-modal
-        :canCancel="false"
-      >
-        <CancelCallModal
-          @close="closeCancelCallModal()"
-          @onCancelCallSubmit="onCancelCallSubmit()"
-          :callIdToBeRemoved="callIdToBeRemoved"
-        ></CancelCallModal>
-      </b-modal> -->
     </div>
   </div>
 </template>
 
 <script>
-import DataService from "@/services/DataService";
+import WorkOrderService from "@/services/WorkOrderService";
+import CustomerService from "@/services/CustomerService";
 import ServiceCall from "@/models/ServiceCall.js";
 
 export default {
   name: "Dispatch",
   components: {
-    CallDetailsModal: require("@/components/ServiceCalls/CallDetailsModal.vue")
+    CallDetailsModal: require("@/components/Dispatch/CallDetailsModal.vue")
       .default
-    // UpdateCallModal: require("@/components/ServiceCalls/UpdateCallModal.vue")
-    //   .default,
-    // CancelCallModal: require("@/components/ServiceCalls/CancelCallModal.vue")
-    //   .default
   },
   data() {
     return {
+      auth: this.$store.state.authentication.user.data,
       incompleteCalls: [],
       customers: [],
       index: "",
-      // selectedCallDetails: {},
       callDetails: {},
       isNewCall: false,
       isNewCallModalActive: false,
-      // isUpdateCallModalActive: false,
-      // isCancelCallModalActive: false,
       callIndexToBeUpdated: null,
       callIdToBeRemoved: ""
     };
   },
-  computed: {},
   methods: {
     closeNewCallModal: function() {
       this.isNewCallModalActive = false;
@@ -211,12 +173,14 @@ export default {
         type: "is-danger",
         hasIcon: true,
         onConfirm: async () => {
-          await DataService.cancelWorkOrder(
+          console.log(this.incompleteCalls[index].string_id);
+          await WorkOrderService.cancelWorkOrder(
+            this.auth,
             this.incompleteCalls[index].string_id
           )
             .then(() => {
               this.incompleteCalls.splice(this.callIndexToBeUpdated, 1);
-              this.$buefy.toast.open("Account deleted!");
+              this.$buefy.toast.open("Service call deleted!");
             })
             .catch(() => {
               this.$buefy.toast.open("Something bad happened");
@@ -229,7 +193,8 @@ export default {
       this.incompleteCalls.splice(this.callIndexToBeUpdated, 1);
     },
     loadTodaysWorkOrders: async function() {
-      await DataService.getIncompleteWorkOrders()
+      let user = this.$store.state.authentication.user.data;
+      await WorkOrderService.getIncompleteWorkOrders(user)
         .then(workOrders => {
           this.incompleteCalls = workOrders.data.filter(function(item) {
             return item.customer;
@@ -241,7 +206,8 @@ export default {
         });
     },
     loadCustomers: async function() {
-      await DataService.getCustomers()
+      let user = this.$store.state.authentication.user.data;
+      await CustomerService.getCustomers(user)
         .then(result => {
           this.customers = result.data;
         })

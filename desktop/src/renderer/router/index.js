@@ -11,19 +11,19 @@ export default new Router({
       component: require("@/components/Home.vue").default
     },
     {
-      path: "/ServiceCall",
-      name: "ServiceCall",
-      component: require("@/components/Dispatch.vue").default
+      path: "/Dispatch",
+      name: "Dispatch",
+      component: require("@/components/Dispatch/Dispatch.vue").default
     },
     {
       path: "/Customers",
       name: "Customers",
-      component: require("@/components/Customers.vue").default
+      component: require("@/components/Customers/Customers.vue").default
     },
     {
       path: "/History",
       name: "History",
-      component: require("@/components/History/ServiceHistory.vue").default
+      component: require("@/components/History/History.vue").default
     },
     {
       path: "/Maintenance",
@@ -31,14 +31,14 @@ export default new Router({
       component: require("@/components/Maintenance.vue").default
     },
     {
-      path: "/Technicians",
-      name: "Technicians",
-      component: require("@/components/Technicians.vue").default
+      path: "/Users",
+      name: "Users",
+      component: require("@/components/Users/Users.vue").default
     },
     {
       path: "/Inventory",
       name: "Inventory",
-      component: require("@/components/Inventory.vue").default
+      component: require("@/components/Inventory/Inventory.vue").default
     },
     {
       path: "*",

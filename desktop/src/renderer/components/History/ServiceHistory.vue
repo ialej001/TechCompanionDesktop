@@ -127,7 +127,7 @@
 </template>
 
 <script>
-import DataService from "@/services/DataService";
+import WorkOrderService from "@/services/WorkOrderService";
 
 export default {
   name: "ServiceHistory",
@@ -155,7 +155,8 @@ export default {
   },
   methods: {
     getWorkOrders: function() {
-      DataService.getCompletedWorkOrders().then(workOrders => {
+      let user = this.$store.state.authentication.user.data;
+      WorkOrderService.getCompletedWorkOrders(user).then(workOrders => {
         this.workOrders = workOrders.data;
         this.total = this.workOrders.length;
       });

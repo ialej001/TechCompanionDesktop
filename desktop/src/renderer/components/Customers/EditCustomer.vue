@@ -3,13 +3,8 @@
     <header class="modal-card-head">
       <p class="modal-card-title">{{ title }}</p>
       <span v-if="!isNew"
-        ><b-button
-          class="button is-danger"
-          @click="confirmCustomDelete"
-          v-if="!isDeleting"
+        ><b-button class="button is-danger" @click="confirmCustomDelete"
           ><b-icon icon="delete"></b-icon></b-button
-        ><b-button v-else @click="isDeleting = false"
-          ><b-icon icon="close"></b-icon></b-button
       ></span>
     </header>
     <section class="modal-card-body">
@@ -285,7 +280,7 @@
 </template>
 
 <script>
-import DataService from "@/services/DataService";
+import CustomerService from "@/services/CustomerService";
 
 export default {
   name: "EditCustomer",
@@ -377,7 +372,8 @@ export default {
         type: "is-danger",
         hasIcon: true,
         onConfirm: async () => {
-          await DataService.deleteCustomer(this.customer.string_id)
+          let user = this.$store.state.authentication.user.data;
+          await CustomerService.deleteCustomer(user, this.customer.string_id)
             .then(() => {
               this.$emit("onDeleteSubmit");
               this.$buefy.toast.open("Account deleted!");
@@ -397,7 +393,12 @@ export default {
       this.onEditSubmit();
     },
     onEditSubmit: async function() {
-      await DataService.updateCustomer(this.customer, this.customer.string_id)
+      let user = this.$store.state.authentication.user.data;
+      await CustomerService.updateCustomer(
+        user,
+        this.customer,
+        this.customer.string_id
+      )
         .then(result => {
           this.$emit("update:customer", result.data);
           this.$emit("onEditSubmit");
@@ -406,7 +407,8 @@ export default {
     },
     onNewSubmit: async function() {
       if (this.customer.propertyName == null) this.customer.propertyName = "";
-      await DataService.createCustomer(this.customer)
+      let user = this.$store.state.authentication.user.data;
+      await CustomerService.createCustomer(user, this.customer)
         .then(result => {
           this.customer.string_id = result.data.string_id;
           this.$emit("update:customer", result.data);

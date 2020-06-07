@@ -56,7 +56,7 @@
 </template>
 
 <script>
-import DataService from "@/services/DataService";
+import CustomerService from "@/services/CustomerService";
 import Customer from "@/models/Customer.js";
 
 export default {
@@ -99,7 +99,8 @@ export default {
   },
   methods: {
     getCustomers: function() {
-      DataService.getCustomers()
+      let user = this.$store.state.authentication.user.data;
+      CustomerService.getCustomers(user)
         .then(customers => {
           this.customers = customers.data;
           this.total = this.customers.length;

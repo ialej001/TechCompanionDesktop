@@ -340,7 +340,7 @@
 </template>
 
 <script>
-import DataService from "@/services/DataService";
+import WorkOrderService from "@/services/WorkOrderService";
 import Customer from "@/models/Customer.js";
 
 export default {
@@ -355,9 +355,6 @@ export default {
     isNewCall: {
       type: Boolean
     }
-  },
-  components: {
-    EditCustomer: require("@/components/Customers/EditCustomer.vue").default
   },
   data() {
     return {
@@ -438,7 +435,8 @@ export default {
       switch (this.callDetails.callType) {
         case "workOrder":
           // send the info to the DB
-          await DataService.dispatchWorkOrder(this.callDetails)
+          let user = this.$store.state.authentication.user.data;
+          await WorkOrderService.dispatchWorkOrder(user, this.callDetails)
             .then(result => {
               this.isSubmissionReceived = true;
               this.callDetails.string_id = result.data.string_id;
@@ -516,7 +514,9 @@ export default {
       this.customerIndex = index;
     },
     updateCall: async function() {
-      await DataService.updateWorkOrder(
+      let user = this.$store.state.authentication.user.data;
+      await WorkOrderService.updateWorkOrder(
+        user,
         this.callDetails,
         this.callDetails.string_id
       )

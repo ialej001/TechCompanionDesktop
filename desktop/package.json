@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.1.0-beta",
+  "version": "0.1.1-beta",
   "author": "ialej001 <ivan.alejandre@gmail.com>",
   "description": "An electron-vue project",
   "license": null,
@@ -66,7 +66,8 @@
     "axios": "^0.18.1",
     "buefy": "^0.8.17",
     "fontawesome": "^5.6.3",
-    "vee-validate": "^3.3.0",
+    "v8-compile-cache": "^2.1.0",
+    "vee-validate": "^2.2.15",
     "vue": "^2.5.16",
     "vue-electron": "^1.0.6",
     "vue-router": "^3.0.1",
