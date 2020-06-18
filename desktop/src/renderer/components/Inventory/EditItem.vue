@@ -13,6 +13,7 @@
       ></span>
     </header>
     <section class="modal-card-body">
+      <!-- simple form -->
       <div>
         <b-field label="Part Number"
           ><b-input v-model="item.partNumber"></b-input

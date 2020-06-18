@@ -28,11 +28,13 @@ function createWindow() {
     width: 1000,
     webPreferences: {
       nodeIntegration: true,
-      nodeIntegrationInWorker: true
+      nodeIntegrationInWorker: true,
+      webSecurity: false
     }
   });
 
   mainWindow.loadURL(winURL);
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", () => {
     mainWindow = null;

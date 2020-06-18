@@ -14,7 +14,6 @@ export const authentication = {
 
       authService.login(username, password).then(
         user => {
-          console.log(user);
           commit("loginSuccess", user);
         },
         error => {

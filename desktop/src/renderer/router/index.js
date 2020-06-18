@@ -4,11 +4,13 @@ import Router from "vue-router";
 Vue.use(Router);
 
 export default new Router({
+  // mode: process.env.IS_ELECTRON ? "hash" : "history",
   routes: [
     {
       path: "/",
       name: "Home",
-      component: require("@/components/Home.vue").default
+      // override for video
+      component: require("@/components/Dispatch/Dispatch.vue").default
     },
     {
       path: "/Dispatch",

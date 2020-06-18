@@ -1,6 +1,8 @@
 <template>
   <div>
     <div class="container">
+      <!-- primary data table that shows all completed service calls -->
+      <!-- this is an accordian style table which rows are expandable -->
       <b-table
         :data="workOrders"
         :paginated="true"
@@ -14,6 +16,7 @@
         @details-open="(row, index) => closeAllOtherTableRows(row, index)"
         :opened-detailed="openTableRow"
       >
+        <!-- column filter bars -->
         <b-input
           slot="searchable"
           slot-scope="props"
@@ -22,6 +25,7 @@
           icon="magnify"
           size="is-small"
         />
+        <!-- column headers and row data -->
         <template slot-scope="props">
           <b-table-column
             field="customer.serviceAddress"
@@ -42,7 +46,9 @@
             {{ new Date(props.row.timeEnded).toDateString() }}
           </b-table-column>
         </template>
+        <!-- row detail template -->
         <template slot="detail" slot-scope="props">
+          <!-- tabs for different info -->
           <b-tabs v-model="tab" class="is-marginless">
             <b-tab-item label="Work Completed" active-class="is-active">
             </b-tab-item>
@@ -50,7 +56,9 @@
             </b-tab-item>
             <b-tab-item label="Charges" active-class="is-active"> </b-tab-item>
           </b-tabs>
+          <!-- issue summary tab-->
           <div class="container" v-if="tab === 0">
+            <!-- list of collapsable cards -->
             <b-collapse
               class="card"
               animation="slide"
@@ -79,7 +87,9 @@
               </div>
             </b-collapse>
           </div>
+          <!-- parts summary tab-->
           <div class="container" v-if="tab === 1">
+            <!-- table empty -->
             <div
               v-if="props.row.partsUsed.length === 0"
               class="container has-text-grey has-text-centered"
@@ -91,6 +101,7 @@
                 No parts were used.
               </p>
             </div>
+            <!-- render a table with data -->
             <div v-else class="">
               <b-table
                 :data="
@@ -101,6 +112,7 @@
               </b-table>
             </div>
           </div>
+          <!-- time and price summary -->
           <div class="container" v-if="tab === 2">
             <div class="columns">
               <div class="column is-half">
@@ -133,27 +145,29 @@ export default {
   name: "ServiceHistory",
   data() {
     return {
+      // main table data
       total: 200,
       perPage: 20,
       currentPage: 1,
       customer: null,
       tab: 0,
       workOrders: [],
+      isOpen: -1,
+      openTableRow: [],
+
+      // row detail: parts used table columns
       partsColumns: [
         { field: "description", label: "Name", sortable: true },
         { field: "quantity", label: "Quantity" },
         { field: "price", label: "Price", sortable: true }
-      ],
-      isEditActive: false,
-      isNew: false,
-      isOpen: -1,
-      openTableRow: []
+      ]
     };
   },
   components: {
     EditCustomer: require("@/components/Customers/EditCustomer.vue").default
   },
   methods: {
+    // fetch completed service calls
     getWorkOrders: function() {
       let user = this.$store.state.authentication.user.data;
       WorkOrderService.getCompletedWorkOrders(user).then(workOrders => {
@@ -161,11 +175,7 @@ export default {
         this.total = this.workOrders.length;
       });
     },
-    closeEditModal: function() {
-      this.isEditActive = false;
-      this.customer = null;
-      this.isNew = false;
-    },
+    // collapses all other rows upon row selection
     closeAllOtherTableRows(row, index) {
       this.openTableRow = [row.string_id];
     },
@@ -195,89 +205,4 @@ export default {
 };
 </script>
 
-<style>
-@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro");
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: "Source Sans Pro", sans-serif;
-}
-
-#wrapper {
-  background: radial-gradient(
-    ellipse at top left,
-    rgba(255, 255, 255, 1) 40%,
-    rgba(229, 229, 229, 0.9) 100%
-  );
-  height: 100vh;
-  padding: 60px 80px;
-  width: 100vw;
-}
-
-#logo {
-  height: auto;
-  margin-bottom: 20px;
-  width: 420px;
-}
-
-main {
-  display: flex;
-  justify-content: space-between;
-}
-
-main > div {
-  flex-basis: 50%;
-}
-
-.left-side {
-  display: flex;
-  flex-direction: column;
-}
-
-.welcome {
-  color: #555;
-  font-size: 23px;
-  margin-bottom: 10px;
-}
-
-.title {
-  color: #2c3e50;
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 6px;
-}
-
-.title.alt {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-.doc p {
-  color: black;
-  margin-bottom: 10px;
-}
-
-.doc button {
-  font-size: 0.8em;
-  cursor: pointer;
-  outline: none;
-  padding: 0.75em 2em;
-  border-radius: 2em;
-  display: inline-block;
-  color: #fff;
-  background-color: #4fc08d;
-  transition: all 0.15s ease;
-  box-sizing: border-box;
-  border: 1px solid #4fc08d;
-}
-
-.doc button.alt {
-  color: #42b983;
-  background-color: transparent;
-}
-</style>
+<style scoped></style>

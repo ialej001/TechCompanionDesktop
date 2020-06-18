@@ -6,7 +6,7 @@
   "license": null,
   "main": "./dist/electron/main.js",
   "scripts": {
-    "build": "node .electron-vue/build.js && electron-builder",
+    "build": "node .electron-vue/build.js && electron-builder --win portable",
     "build:dir": "node .electron-vue/build.js && electron-builder --dir",
     "build:clean": "cross-env BUILD_TARGET=clean node .electron-vue/build.js",
     "build:web": "cross-env BUILD_TARGET=web node .electron-vue/build.js",
@@ -66,7 +66,6 @@
     "axios": "^0.18.1",
     "buefy": "^0.8.17",
     "fontawesome": "^5.6.3",
-    "v8-compile-cache": "^2.1.0",
     "vee-validate": "^2.2.15",
     "vue": "^2.5.16",
     "vue-electron": "^1.0.6",

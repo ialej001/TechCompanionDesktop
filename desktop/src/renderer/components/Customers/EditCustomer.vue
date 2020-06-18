@@ -2,6 +2,7 @@
   <div class="modal-card">
     <header class="modal-card-head">
       <p class="modal-card-title">{{ title }}</p>
+      <!-- render the delete button if this modal has been opened with the edit context -->
       <span v-if="!isNew"
         ><b-button class="button is-danger" @click="confirmCustomDelete"
           ><b-icon icon="delete"></b-icon></b-button
@@ -41,6 +42,7 @@
           </template>
         </b-tab-item>
       </b-tabs>
+      <!-- Property tab contents -->
       <div class="container" v-if="tab === 0">
         <div class="columns is-multiline">
           <div class="column is-two-thirds">

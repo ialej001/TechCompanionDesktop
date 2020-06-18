@@ -26,6 +26,7 @@
         default-sort="streetAddress"
         :selected.sync="selected"
       >
+        <!-- column filter bars -->
         <b-input
           slot="searchable"
           slot-scope="props"
@@ -63,13 +64,11 @@ export default {
   name: "Customers",
   data() {
     return {
+      // table variables
       total: 200,
       perPage: 20,
       currentPage: 1,
       selected: null,
-      customer: {},
-      tab: 0,
-      customers: [],
       columns: [
         {
           field: "streetAddress",
@@ -90,14 +89,20 @@ export default {
           sortable: true
         }
       ],
+
+      // general variables
+      customer: {},
+      customers: [],
       isEditActive: false,
       isNew: false
     };
   },
   components: {
+    // our data manipulation modal
     EditCustomer: require("@/components/Customers/EditCustomer.vue").default
   },
   methods: {
+    // populate this tab with data by making a server call
     getCustomers: function() {
       let user = this.$store.state.authentication.user.data;
       CustomerService.getCustomers(user)
@@ -112,47 +117,45 @@ export default {
       this.selected = null;
       this.isNew = false;
     },
+    // executes when user clicks on 'new' button
     onNew: function() {
       this.customer = new Customer();
       this.isNew = true;
       this.isEditActive = true;
     },
+    // executes when the modal closes via a new customer submit
     onNewSubmit: function() {
       this.customers.push(this.customer);
       this.customer = {};
       this.closeEditModal();
     },
+    // executes when a user clicks on the 'edit' button
     onEdit: function() {
       if (this.customer.gateDetails == null) {
         this.customer.gateDetails = [];
       }
+      // switch between the two ways to manipulate customer data
+      // prep the customer data variable here that is used as a prop in the modal
       if (this.isNew) {
-        this.customer = {
-          string_id: "",
-          propertyName: "",
-          propertyType: "",
-          streetAddress: "",
-          city: "",
-          zipCode: null,
-          contactName: "",
-          contactPhone: "",
-          contactEmail: "",
-          billingMethod: "",
-          gateDetails: []
-        };
+        this.customer = new Customer();
       } else {
         this.customer = Object.assign({}, this.selected);
       }
+      // activate the modal
       this.isEditActive = true;
     },
+    // executes when the modal closes via an edit customer submit
     onEditSubmit: function() {
+      // update our local copy of the customer list
       this.customers.splice(
         this.customers.indexOf(this.selected),
         1,
         this.customer
       );
+      // close the modal
       this.closeEditModal();
     },
+    // executes when a customer is disposed
     onDeleteSubmit() {
       this.customers.splice(this.customers.indexOf(this.selected), 1);
       this.total--;
@@ -160,6 +163,7 @@ export default {
     }
   },
   mounted() {
+    // make the server call when the component is ready to be rendered
     this.getCustomers();
   }
 };

@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- to be expanded when other call types have been implemented -->
     <div>
       <ServiceHistory />
     </div>

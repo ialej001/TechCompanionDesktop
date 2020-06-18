@@ -4,6 +4,7 @@
       <div
         class="column is-one-fifth-fullhd is-one-quarter-desktop is-one-third-tablet"
       >
+        <!-- this card always renders and its contents reflect if there are any pending calls -->
         <div class="card">
           <div class="card-content has-text-centered">
             <p v-if="!incompleteCalls.length">No open work orders</p>
@@ -75,6 +76,7 @@
         </div>
       </div>
 
+      <!-- call editor modal -->
       <b-modal
         :active.sync="isNewCallModalActive"
         has-modal-card
@@ -110,6 +112,7 @@ export default {
   },
   data() {
     return {
+      // jwt
       auth: this.$store.state.authentication.user.data,
       incompleteCalls: [],
       customers: [],
@@ -122,9 +125,12 @@ export default {
     };
   },
   methods: {
+    // closes the modal
     closeNewCallModal: function() {
       this.isNewCallModalActive = false;
     },
+    // resets the data variables for the next modal rendering after the update function
+    // was called
     closeUpdateCallModal: function() {
       this.isUpdateCallModalActive = false;
       this.selectedCallDetails = {
@@ -136,26 +142,29 @@ export default {
         location: []
       };
     },
-    closeCancelCallModal: function() {
-      this.isCancelCallModalActive = false;
-    },
+    // opens the modal in a new call context
     onNew: function() {
       this.callDetails = new ServiceCall();
       this.isNewCall = true;
       this.isNewCallModalActive = true;
     },
+    // executes when a new call has been submitted
+    // updates the local data array and resets related fields
     onNewCallSubmit: function() {
       this.incompleteCalls.push(this.callDetails);
       this.isNewCallModalActive = false;
       this.isNewCall = false;
       Object.assign(this.callDetails, {});
     },
+    // opens the modal when a user choses to edit a pending call
     onUpdate: function(index) {
       this.callDetails = Object.assign({}, this.incompleteCalls[index]);
       this.callIndexToBeUpdated = index;
       this.isNewCall = false;
       this.isNewCallModalActive = true;
     },
+    // executes when a call has been updated
+    // updates the local data array and resets related fields
     onUpdateCallSubmit: function() {
       this.isNewCallModalActive = false;
       this.incompleteCalls.splice(
@@ -164,6 +173,7 @@ export default {
         this.callDetails
       );
     },
+    // creates a alert dialog to give user a final choice
     onCancelCall(index) {
       this.$buefy.dialog.confirm({
         title: "Cancel service call",
@@ -173,7 +183,6 @@ export default {
         type: "is-danger",
         hasIcon: true,
         onConfirm: async () => {
-          console.log(this.incompleteCalls[index].string_id);
           await WorkOrderService.cancelWorkOrder(
             this.auth,
             this.incompleteCalls[index].string_id
@@ -188,10 +197,7 @@ export default {
         }
       });
     },
-    onCancelCallSubmit: function() {
-      this.isCancelCallModalActive = false;
-      this.incompleteCalls.splice(this.callIndexToBeUpdated, 1);
-    },
+    // makes the server call to retrive incomplete calls
     loadTodaysWorkOrders: async function() {
       let user = this.$store.state.authentication.user.data;
       await WorkOrderService.getIncompleteWorkOrders(user)
@@ -205,6 +211,7 @@ export default {
           this.incompleteCalls = [];
         });
     },
+    // fetches a list of all customers in the server database
     loadCustomers: async function() {
       let user = this.$store.state.authentication.user.data;
       await CustomerService.getCustomers(user)
@@ -212,13 +219,10 @@ export default {
           this.customers = result.data;
         })
         .catch(error => {});
-    },
-    cancelCallModal: function(index) {
-      this.isCancelCallModalActive = true;
-      this.callIdToBeRemoved = this.incompleteCalls[index].string_id;
     }
   },
   mounted() {
+    // load our data on component creation
     this.loadTodaysWorkOrders();
     this.loadCustomers();
   }

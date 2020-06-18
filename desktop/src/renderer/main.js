@@ -8,7 +8,6 @@ import Buefy from "buefy";
 import VeeValidate from "vee-validate";
 import "buefy/dist/buefy.css";
 import "@mdi/font/css/materialdesignicons.css";
-import "v8-compile-cache";
 
 Vue.use(Buefy);
 Vue.use(VeeValidate);

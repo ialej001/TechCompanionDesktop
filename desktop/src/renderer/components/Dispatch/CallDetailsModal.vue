@@ -30,15 +30,19 @@
             </b-field>
           </b-step-item>
 
+          <!-- If modal renders from new, step 2, otherwise step 1 -->
+          <!-- restrict ability to click on number icon if it's a new customer -->
           <b-step-item
             :step="isNewCall ? '2' : '1'"
             label="Customer"
             :clickable="!isNewCall"
           >
+            <!-- contents will render if user has not chosen a customer option -->
             <div
               v-if="!isNewCustomer && isNewCall"
               class="columns is-vcentered is-multiline"
             >
+              <!-- customer autocomplete search bar -->
               <div class="column is-11">
                 <b-field label="Customer search" label-position="on-border">
                   <b-autocomplete
@@ -52,6 +56,7 @@
                   </b-autocomplete>
                 </b-field>
               </div>
+              <!-- only render if there's an address in the search bar -->
               <div class="column is-1">
                 <b-button
                   :disabled="selected == -1 ? true : false"
@@ -59,12 +64,14 @@
                   ><b-icon icon="close"></b-icon
                 ></b-button>
               </div>
+              <!-- hide option to make a new customer record if there's an address in the search bar -->
               <div v-if="selected == -1" class="column is-12">
                 <b-button type="is-success" @click="createNewCustomer()"
                   >New customer</b-button
                 >
               </div>
             </div>
+            <!-- renders if user opts to create a new customer record -->
             <div v-else>
               <b-field label="Property Name">
                 <b-input v-model="callDetails.customer.propertyName"></b-input>
@@ -137,6 +144,7 @@
                 <b-input v-model="callDetails.customer.contactEmail"></b-input>
               </b-field>
             </div>
+            <!-- error display -->
             <div v-if="errors.noCustomerSelected != null">
               <p class="has-text-danger has-text-weight-medium is-italic">
                 {{ errors.noCustomerSelected }}
@@ -144,11 +152,14 @@
             </div>
           </b-step-item>
 
+          <!-- If modal renders from new, step 3, otherwise step 2 -->
+          <!-- restrict ability to click on number icon if it's a new customer -->
           <b-step-item
             :step="isNewCall ? '3' : '2'"
             label="Location"
             :clickable="!isNewCall"
           >
+            <!-- default state which shows a table of all issues -->
             <div v-if="!isAddingNewIssue">
               <b-table
                 :data="callDetails.issues.length == 0 ? [] : callDetails.issues"
@@ -196,11 +207,13 @@
                 </template>
               </b-table>
               <br />
+              <!-- button to toggle issue creation form -->
               <b-button
                 class="button is-info"
                 @click="isAddingNewIssue = !isAddingNewIssue"
                 >Add new Issue</b-button
               >
+              <!-- error display -->
               <div
                 class="container has-text-centered"
                 v-if="errors.issues != null"
@@ -211,9 +224,11 @@
                 </p>
               </div>
             </div>
+            <!-- issue creation form -->
             <div v-else class="container">
               <div class="columns is-multiline is-vcentered">
                 <div class="column is-8">
+                  <!-- dropdown menu to select from an existing customer's location list -->
                   <b-field
                     v-if="!isNewCustomer && !isAddingNewLocation"
                     label="Gate location"
@@ -231,6 +246,7 @@
                       </option>
                     </b-select>
                   </b-field>
+                  <!-- renders when user opts to add a new gate location to an existing customer -->
                   <b-field
                     v-else
                     label="Gate location"
@@ -239,7 +255,9 @@
                   >
                     <b-input v-model="locationToAdd"></b-input>
                   </b-field>
+                  <b-field label="Access Codes"><b-input></b-input></b-field>
                 </div>
+                <!-- button that toggles between dropdown list or text input -->
                 <div class="column is-pulled-right">
                   <b-button
                     v-if="!isNewCustomer"
@@ -254,6 +272,7 @@
                     }}</b-button
                   >
                 </div>
+                <!-- description input -->
                 <div class="column is-12">
                   <b-field
                     label="Description of the problem"
@@ -272,11 +291,14 @@
             </div>
           </b-step-item>
 
+          <!-- If modal renders from new, step 4, otherwise step 3 -->
+          <!-- restrict ability to click on number icon if it's a new customer -->
           <b-step-item
             :step="isNewCall ? '4' : '3'"
             label="Tech"
             :clickable="!isNewCall"
           >
+            <!-- technician assignment dropdown -->
             <b-field label="Assign to..." placeholder="Pick one">
               <b-select v-model="callDetails.techAssigned">
                 <option
@@ -293,27 +315,32 @@
       </section>
       <footer class="modal-card-foot">
         <div>
+          <!-- closes the modal, does not save data -->
           <b-button @click="closeModal">
             Close
           </b-button>
         </div>
         <div>
+          <!-- only renders when a user is adding a new issue to avoid button confusion -->
           <b-button
             @click="isAddingNewIssue = !isAddingNewIssue"
             v-if="isAddingNewIssue"
             >Cancel</b-button
           >
+          <!-- hides when user is creating a new issue to avoid button confusion -->
           <b-button
             v-if="!isAddingNewIssue && activeStep > 0"
             @click.prevent="activeStep--"
             >Back</b-button
           >
+          <!-- only renders when a user is adding a new issue to avoid button confusion -->
           <b-button
             class="button is-info"
             v-if="isAddingNewIssue"
             @click="updateIssue()"
             >Add Issue</b-button
           >
+          <!-- hides when user is creating a new issue to avoid button confusion -->
           <b-button
             v-if="
               isNewCall
@@ -324,6 +351,7 @@
             @click="validator()"
             >Next</b-button
           >
+          <!-- renders when on the last step. form submit button -->
           <b-button
             v-if="isNewCall ? activeStep == 3 : activeStep == 2"
             :disabled="callDetails.techAssigned == null ? true : false"
@@ -345,13 +373,17 @@ import Customer from "@/models/Customer.js";
 
 export default {
   name: "CallDetailsModal",
+  // data passed from parent component
   props: {
+    // used to pick an existing customer's info
     customers: {
       type: Array
     },
+    // the service call object that we are manipulating
     callDetails: {
       type: Object
     },
+    // differentiates between a new service call or updating an existing call
     isNewCall: {
       type: Boolean
     }
@@ -360,20 +392,6 @@ export default {
     return {
       // global
       activeStep: 0,
-      errors: {
-        callType: null,
-        propertyType: null,
-        streetAddress: null,
-        city: null,
-        zipCode: null,
-        contactName: null,
-        contactPhone: null,
-        techAssigned: null,
-        issues: null,
-        locationToAdd: null,
-        descriptionToAdd: null,
-        techAssigned: null
-      },
       title: this.isNewCall ? "New Call" : "Update Details",
       submitButtonLabel: this.isNewCall ? "Dispatch" : "Update",
       // step 2 variables (on update, step 1)
@@ -395,6 +413,7 @@ export default {
       detailOpenIndex: -1,
       editDetailIndex: null,
       // step 4 variables (on update, step 3)
+      // TODO: make this populate by calling users/ or convert to a prop
       technicians: [
         {
           id: 1,
@@ -409,6 +428,7 @@ export default {
     };
   },
   methods: {
+    // opens the modal
     cardModal() {
       this.$buefy.modal.open({
         parent: this,
@@ -417,21 +437,26 @@ export default {
         trapFocus: true
       });
     },
+    // close this modal by calling a parent function
     closeModal: function() {
       this.$emit("close");
     },
+    // clears the customer search bar and its data bindings
     clearCustomerSearch: function() {
       this.selected = -1;
       this.address = "";
       this.callDetails.customer = Object.assign({}, {});
     },
+    // instantiates a new customer object and sets which type of wizard this will be
     createNewCustomer: function() {
       this.callDetails.customer = new Customer();
       this.isNewCustomer = true;
     },
+    // called when user clicks on 'create' button at the end of the wizard
     createCall: async function() {
       this.isSendingData = true;
       let callToBeDispatched = {};
+      // TODO: expand to include 'estimate' call type
       switch (this.callDetails.callType) {
         case "workOrder":
           // send the info to the DB
@@ -440,6 +465,7 @@ export default {
             .then(result => {
               this.isSubmissionReceived = true;
               this.callDetails.string_id = result.data.string_id;
+              // send our data back the parent component
               this.$emit("update:callDetails", result.data);
               this.$emit("onNewCallSubmit", result.data);
             })
@@ -447,10 +473,13 @@ export default {
           break;
       }
     },
+    // adds an issue to the issues variable on the service call. also adds a new location to the customer
+    // if a user creates a new location
     updateIssue: function() {
       this.$set(this.errors, "locationToAdd", null);
       this.$set(this.errors, "descriptionToAdd", null);
 
+      // guard against empty fields
       if (this.locationToAdd == null) {
         this.$set(this.errors, "locationToAdd", "Need a gate location");
         return;
@@ -486,6 +515,7 @@ export default {
         });
       }
 
+      // add the issue to the service call
       this.callDetails.issues.push({
         location: this.locationToAdd,
         problem: this.descriptionToAdd,
@@ -493,12 +523,15 @@ export default {
       });
 
       this.callDetails.issues.splice(this.callDetails.issues.length);
+
+      // reset form
       this.errors.issues = null;
       this.isAddingNewIssue = false;
       this.isAddingNewLocation = false;
       this.locationToAdd = null;
       this.descriptionToAdd = null;
     },
+    // creates a dialog prompt to confirm issue deletion
     onDeleteIssue() {
       this.$buefy.dialog.confirm({
         title: "Remove issue",
@@ -510,9 +543,11 @@ export default {
         onConfirm: () => this.callDetails.issues.splice(this.detailOpenIndex, 1)
       });
     },
+    // used by the customer search bar to register which customer was chosen
     setCustomerIndex: function(index) {
       this.customerIndex = index;
     },
+    // pushes the entire call to the server, regardless if changes were made
     updateCall: async function() {
       let user = this.$store.state.authentication.user.data;
       await WorkOrderService.updateWorkOrder(
@@ -528,6 +563,8 @@ export default {
         })
         .catch();
     },
+    // custom form validation
+    // TODO: delete after switch to vee-validate
     validator: function() {
       if (this.isNewCall ? this.activeStep == 0 : false) {
         if (this.callDetails.callType == null) {
@@ -607,49 +644,14 @@ export default {
       }
       // step 1/activestep 0
     },
+    // collapses all issue table rows when one is selected
     closeAllOtherTableRows(row) {
       this.detailOpenIndex = this.callDetails.issues.indexOf(row);
       this.openTableRow = [row.location];
     }
   },
   computed: {
-    canProceed: {
-      get: function() {
-        switch (this.activeStep) {
-          case 1:
-            if (this.selected === -1 && !this.isNewCustomer) {
-              return true;
-            }
-            if (this.callDetails.customer.propertyType === "") return true;
-
-            if (this.callDetails.customer.streetAddress === "") return true;
-
-            if (this.callDetails.customer.city === "") return true;
-
-            if (isNaN(parseInt(this.callDetails.customer.zipCode))) return true;
-
-            if (this.callDetails.customer.contactName === "") return true;
-
-            if (this.callDetails.customer.contactPhone === "") return true;
-
-            return false;
-          // break;
-          case 2:
-            if (this.callDetails.issues.length > 0) return false;
-          // break;
-          case 3:
-            if (this.callDetails.techAssigned === "") return true;
-            break;
-          default:
-            // step 1/activestep 0
-            if (this.callType == null) {
-              return true;
-            }
-            return false;
-        }
-      },
-      set: function() {}
-    },
+    // computes the list of customer addresses to be searched
     addresses: function() {
       let addresses = [];
       this.customers.forEach(customer => {
@@ -657,6 +659,7 @@ export default {
       });
       return addresses;
     },
+    // computes the array that is used for the location dropdown menu
     locations: function() {
       if (this.customers[this.customerIndex].gateDetails == null) return;
       let locations = [];
@@ -666,6 +669,7 @@ export default {
 
       return locations;
     },
+    // computes on change the list of addresses as the user types in the customer search bar
     filteredAddresses: function() {
       return this.addresses.filter(option => {
         return (
@@ -678,6 +682,8 @@ export default {
     }
   },
   watch: {
+    // watches when the user selects an address from the autocomplete dropdown
+    // updates the customer selection when an address is selected
     selected(value) {
       if (value == -1) {
         this.hasFoundCustomer = false;

@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: implement this tab -->
   <div class="container has-text-centered">
     <h1>Coming soon</h1>
   </div>
