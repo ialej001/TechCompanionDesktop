@@ -6,5 +6,6 @@ export default class ServiceCall {
     this.customer = new Customer();
     this.techAssigned = null;
     this.issues = [];
+    this.isWarranty = false;
   }
 }

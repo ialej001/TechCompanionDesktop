@@ -1,370 +1,372 @@
 <template>
-  <form>
-    <div class="modal-card">
-      <header class="modal-card-head">
-        <p class="modal-card-title">{{ title }}</p>
-      </header>
-      <section class="modal-card-body">
-        <b-steps
-          v-model="activeStep"
-          :animated="true"
-          :rounded="true"
-          :has-navigation="false"
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">{{ title }}</p>
+    </header>
+    <section class="modal-card-body">
+      <b-steps
+        v-model="activeStep"
+        :animated="true"
+        :rounded="true"
+        :has-navigation="false"
+      >
+        <b-step-item
+          v-if="isNewCall"
+          step="1"
+          label="Call Type"
+          :clickable="false"
         >
-          <b-step-item
-            v-if="isNewCall"
-            step="1"
-            label="Call Type"
-            :clickable="false"
+          <br />
+          <b-field
+            label="What kind of call?"
+            :type="errors.callType == null ? '' : 'is-danger'"
+            :message="errors.callType"
           >
-            <br />
-            <b-field
-              label="What kind of call?"
-              :type="errors.callType == null ? '' : 'is-danger'"
-              :message="errors.callType"
-            >
-              <b-select v-model="callDetails.callType" placeholder="Pick one">
-                <option value="workOrder" selected>Service</option>
-                <option value="estimate" disabled>Estimate</option>
-              </b-select>
-            </b-field>
-          </b-step-item>
+            <b-select v-model="callDetails.callType" placeholder="Pick one">
+              <option value="workOrder" selected>Service</option>
+              <option value="estimate" disabled>Estimate</option>
+            </b-select>
+          </b-field>
+          <b-field
+            label="Warranty?"
+            v-if="callDetails.callType === 'workOrder'"
+          >
+            <b-switch v-model="callDetails.isWarranty"> </b-switch>
+          </b-field>
+        </b-step-item>
 
-          <!-- If modal renders from new, step 2, otherwise step 1 -->
-          <!-- restrict ability to click on number icon if it's a new customer -->
-          <b-step-item
-            :step="isNewCall ? '2' : '1'"
-            label="Customer"
-            :clickable="!isNewCall"
+        <!-- If modal renders from new, step 2, otherwise step 1 -->
+        <!-- restrict ability to click on number icon if it's a new customer -->
+        <b-step-item
+          :step="isNewCall ? '2' : '1'"
+          label="Customer"
+          :clickable="!isNewCall"
+        >
+          <!-- contents will render if user has not chosen a customer option -->
+          <div
+            v-if="!isNewCustomer && isNewCall"
+            class="columns is-vcentered is-multiline"
           >
-            <!-- contents will render if user has not chosen a customer option -->
-            <div
-              v-if="!isNewCustomer && isNewCall"
-              class="columns is-vcentered is-multiline"
-            >
-              <!-- customer autocomplete search bar -->
-              <div class="column is-11">
-                <b-field label="Customer search" label-position="on-border">
-                  <b-autocomplete
-                    v-model="address"
-                    :data="filteredAddresses"
-                    placeholder="Type an address"
-                    icon="magnify"
-                    @select="option => (selected = addresses.indexOf(option))"
-                  >
-                    <template slot="empty">No results found</template>
-                  </b-autocomplete>
-                </b-field>
-              </div>
-              <!-- only render if there's an address in the search bar -->
-              <div class="column is-1">
-                <b-button
-                  :disabled="selected == -1 ? true : false"
-                  @click="clearCustomerSearch()"
-                  ><b-icon icon="close"></b-icon
-                ></b-button>
-              </div>
-              <!-- hide option to make a new customer record if there's an address in the search bar -->
-              <div v-if="selected == -1" class="column is-12">
-                <b-button type="is-success" @click="createNewCustomer()"
-                  >New customer</b-button
+            <!-- customer autocomplete search bar -->
+            <div class="column is-11">
+              <b-field label="Customer search" label-position="on-border">
+                <b-autocomplete
+                  v-model="address"
+                  :data="filteredAddresses"
+                  placeholder="Type an address"
+                  icon="magnify"
+                  @select="option => (selected = addresses.indexOf(option))"
                 >
-              </div>
-            </div>
-            <!-- renders if user opts to create a new customer record -->
-            <div v-else>
-              <b-field label="Property Name">
-                <b-input v-model="callDetails.customer.propertyName"></b-input>
-              </b-field>
-              <b-field
-                label="Property Type"
-                :type="errors.propertyType == null ? '' : 'is-danger'"
-                :message="errors.propertyType"
-              >
-                <b-select
-                  v-model="callDetails.customer.propertyType"
-                  placeholder="Select one"
-                >
-                  <option value="Residential">
-                    House
-                  </option>
-                  <option value="Apartment">
-                    Apartment/Condo
-                  </option>
-                  <option value="HOA">HOA</option>
-                  <option value="Commerical">
-                    Business complex
-                  </option>
-                  <option value="Industrial">
-                    Industrial complex
-                  </option>
-                </b-select>
-              </b-field>
-              <b-field
-                required
-                label="Street Address"
-                :type="errors.streetAddress == null ? '' : 'is-danger'"
-                :message="errors.streetAddress"
-              >
-                <b-input v-model="callDetails.customer.streetAddress"></b-input>
-              </b-field>
-              <b-field
-                required
-                label="City"
-                :type="errors.city == null ? '' : 'is-danger'"
-                :message="errors.city"
-              >
-                <b-input v-model="callDetails.customer.city"></b-input>
-              </b-field>
-              <b-field
-                required
-                label="Zip code"
-                :type="errors.zipCode == null ? '' : 'is-danger'"
-                :message="errors.zipCode"
-              >
-                <b-input v-model="callDetails.customer.zipCode"></b-input>
-              </b-field>
-              <b-field
-                required
-                label="Primary contact"
-                :type="errors.contactName == null ? '' : 'is-danger'"
-                :message="errors.contactName"
-              >
-                <b-input v-model="callDetails.customer.contactName"></b-input>
-              </b-field>
-              <b-field
-                required
-                label="Phone number"
-                :type="errors.contactPhone == null ? '' : 'is-danger'"
-                :message="errors.contactPhone"
-              >
-                <b-input v-model="callDetails.customer.contactPhone"></b-input>
-              </b-field>
-              <b-field label="Email">
-                <b-input v-model="callDetails.customer.contactEmail"></b-input>
+                  <template slot="empty">No results found</template>
+                </b-autocomplete>
               </b-field>
             </div>
-            <!-- error display -->
-            <div v-if="errors.noCustomerSelected != null">
-              <p class="has-text-danger has-text-weight-medium is-italic">
-                {{ errors.noCustomerSelected }}
-              </p>
-            </div>
-          </b-step-item>
-
-          <!-- If modal renders from new, step 3, otherwise step 2 -->
-          <!-- restrict ability to click on number icon if it's a new customer -->
-          <b-step-item
-            :step="isNewCall ? '3' : '2'"
-            label="Location"
-            :clickable="!isNewCall"
-          >
-            <!-- default state which shows a table of all issues -->
-            <div v-if="!isAddingNewIssue">
-              <b-table
-                :data="callDetails.issues.length == 0 ? [] : callDetails.issues"
-                :columns="issueColumns"
-                detailed
-                detail-key="location"
-                @details-open="(row, index) => closeAllOtherTableRows(row)"
-                :opened-detailed="openTableRow"
-              >
-                <template slot="detail" slot-scope="props">
-                  <div class="columns">
-                    <div class="column is-10">
-                      <b-field label="Description of the problem"
-                        ><b-input
-                          v-model="props.row.problem"
-                          :disabled="
-                            editDetailIndex == detailOpenIndex ? false : true
-                          "
-                        ></b-input
-                      ></b-field>
-                    </div>
-                    <div class="column is-1">
-                      <b-button
-                        v-if="editDetailIndex == null"
-                        @click="editDetailIndex = detailOpenIndex"
-                        ><b-icon icon="pencil"></b-icon
-                      ></b-button>
-                      <b-button v-else @click="editDetailIndex = null"
-                        ><b-icon icon="check"></b-icon
-                      ></b-button>
-                    </div>
-                    <div class="column is-1">
-                      <b-button class="is-danger" @click="onDeleteIssue()"
-                        ><b-icon icon="close"></b-icon
-                      ></b-button>
-                    </div>
-                  </div>
-                </template>
-                <template slot="empty">
-                  <section class="section">
-                    <div class="content has-text-grey has-text-centered">
-                      <p>No Issues Added Yet</p>
-                    </div>
-                  </section>
-                </template>
-              </b-table>
-              <br />
-              <!-- button to toggle issue creation form -->
+            <!-- only render if there's an address in the search bar -->
+            <div class="column is-1">
               <b-button
-                class="button is-info"
-                @click="isAddingNewIssue = !isAddingNewIssue"
-                >Add new Issue</b-button
-              >
-              <!-- error display -->
-              <div
-                class="container has-text-centered"
-                v-if="errors.issues != null"
-              >
-                <br />
-                <p class="has-text-weight-medium has-text-danger is-italic">
-                  {{ errors.issues }}
-                </p>
-              </div>
+                :disabled="selected == -1 ? true : false"
+                @click="clearCustomerSearch()"
+                ><b-icon icon="close"></b-icon
+              ></b-button>
             </div>
-            <!-- issue creation form -->
-            <div v-else class="container">
-              <div class="columns is-multiline is-vcentered">
-                <div class="column is-8">
-                  <!-- dropdown menu to select from an existing customer's location list -->
-                  <b-field
-                    v-if="!isNewCustomer && !isAddingNewLocation"
-                    label="Gate location"
-                    :type="errors.locationToAdd == null ? '' : 'is-danger'"
-                    :message="errors.locationToAdd"
-                  >
-                    <b-select v-model="locationToAdd" placeholder="Select one">
-                      <option
-                        v-for="(detail, index) in callDetails.customer
-                          .gateDetails"
-                        :value="detail.location"
-                        :key="index"
-                      >
-                        {{ detail.location }}
-                      </option>
-                    </b-select>
-                  </b-field>
-                  <!-- renders when user opts to add a new gate location to an existing customer -->
-                  <b-field
-                    v-else
-                    label="Gate location"
-                    :type="errors.locationToAdd == null ? '' : 'is-danger'"
-                    :message="errors.locationToAdd"
-                  >
-                    <b-input v-model="locationToAdd"></b-input>
-                  </b-field>
-                  <b-field label="Access Codes"><b-input></b-input></b-field>
-                </div>
-                <!-- button that toggles between dropdown list or text input -->
-                <div class="column is-pulled-right">
-                  <b-button
-                    v-if="!isNewCustomer"
-                    @click="isAddingNewLocation = !isAddingNewLocation"
-                    :class="
-                      isAddingNewLocation
-                        ? 'button is-danger'
-                        : 'button is-info'
-                    "
-                    >{{
-                      !isAddingNewLocation ? "Add new location" : "Cancel"
-                    }}</b-button
-                  >
-                </div>
-                <!-- description input -->
-                <div class="column is-12">
-                  <b-field
-                    label="Description of the problem"
-                    :type="errors.descriptionToAdd == null ? '' : 'is-danger'"
-                    :message="errors.descriptionToAdd"
-                  >
-                    <b-input
-                      v-model="descriptionToAdd"
-                      maxlength="300"
-                      type="textarea"
-                      placeholder="What's wrong?"
-                    ></b-input>
-                  </b-field>
-                </div>
-              </div>
+            <!-- hide option to make a new customer record if there's an address in the search bar -->
+            <div v-if="selected == -1" class="column is-12">
+              <b-button type="is-success" @click="createNewCustomer()"
+                >New customer</b-button
+              >
             </div>
-          </b-step-item>
-
-          <!-- If modal renders from new, step 4, otherwise step 3 -->
-          <!-- restrict ability to click on number icon if it's a new customer -->
-          <b-step-item
-            :step="isNewCall ? '4' : '3'"
-            label="Tech"
-            :clickable="!isNewCall"
-          >
-            <!-- technician assignment dropdown -->
-            <b-field label="Assign to..." placeholder="Pick one">
-              <b-select v-model="callDetails.techAssigned">
-                <option
-                  v-for="tech in technicians"
-                  :value="tech.name"
-                  :key="tech.id"
-                >
-                  {{ tech.name }}
+          </div>
+          <!-- renders if user opts to create a new customer record -->
+          <div v-else>
+            <b-field label="Property Name">
+              <b-input v-model="callDetails.customer.propertyName"></b-input>
+            </b-field>
+            <b-field
+              label="Property Type"
+              :type="errors.propertyType == null ? '' : 'is-danger'"
+              :message="errors.propertyType"
+            >
+              <b-select
+                v-model="callDetails.customer.propertyType"
+                placeholder="Select one"
+              >
+                <option value="Residential">
+                  House
+                </option>
+                <option value="Apartment">
+                  Apartment/Condo
+                </option>
+                <option value="HOA">HOA</option>
+                <option value="Commerical">
+                  Business complex
+                </option>
+                <option value="Industrial">
+                  Industrial complex
                 </option>
               </b-select>
             </b-field>
-          </b-step-item>
-        </b-steps>
-      </section>
-      <footer class="modal-card-foot">
-        <div>
-          <!-- closes the modal, does not save data -->
-          <b-button @click="closeModal">
-            Close
-          </b-button>
-        </div>
-        <div>
-          <!-- only renders when a user is adding a new issue to avoid button confusion -->
-          <b-button
-            @click="isAddingNewIssue = !isAddingNewIssue"
-            v-if="isAddingNewIssue"
-            >Cancel</b-button
-          >
-          <!-- hides when user is creating a new issue to avoid button confusion -->
-          <b-button
-            v-if="!isAddingNewIssue && activeStep > 0"
-            @click.prevent="activeStep--"
-            >Back</b-button
-          >
-          <!-- only renders when a user is adding a new issue to avoid button confusion -->
-          <b-button
-            class="button is-info"
-            v-if="isAddingNewIssue"
-            @click="updateIssue()"
-            >Add Issue</b-button
-          >
-          <!-- hides when user is creating a new issue to avoid button confusion -->
-          <b-button
-            v-if="
-              isNewCall
-                ? !isAddingNewIssue && activeStep < 3
-                : !isAddingNewIssue && activeStep < 2
-            "
-            class="button"
-            @click="validator()"
-            >Next</b-button
-          >
-          <!-- renders when on the last step. form submit button -->
-          <b-button
-            v-if="isNewCall ? activeStep == 3 : activeStep == 2"
-            :disabled="callDetails.techAssigned == null ? true : false"
-            type="is-success"
-            native-type="submit"
-            style="margin-right: 10px"
-            @click.prevent="isNewCall ? createCall() : updateCall()"
-            >{{ submitButtonLabel }}</b-button
-          >
-        </div>
-      </footer>
-    </div>
-  </form>
+            <b-field
+              required
+              label="Street Address"
+              :type="errors.streetAddress == null ? '' : 'is-danger'"
+              :message="errors.streetAddress"
+            >
+              <b-input v-model="callDetails.customer.streetAddress"></b-input>
+            </b-field>
+            <b-field
+              required
+              label="City"
+              :type="errors.city == null ? '' : 'is-danger'"
+              :message="errors.city"
+            >
+              <b-input v-model="callDetails.customer.city"></b-input>
+            </b-field>
+            <b-field
+              required
+              label="Zip code"
+              :type="errors.zipCode == null ? '' : 'is-danger'"
+              :message="errors.zipCode"
+            >
+              <b-input v-model="callDetails.customer.zipCode"></b-input>
+            </b-field>
+            <b-field
+              required
+              label="Primary contact"
+              :type="errors.contactName == null ? '' : 'is-danger'"
+              :message="errors.contactName"
+            >
+              <b-input v-model="callDetails.customer.contactName"></b-input>
+            </b-field>
+            <b-field
+              required
+              label="Phone number"
+              :type="errors.contactPhone == null ? '' : 'is-danger'"
+              :message="errors.contactPhone"
+            >
+              <b-input v-model="callDetails.customer.contactPhone"></b-input>
+            </b-field>
+            <b-field label="Email">
+              <b-input v-model="callDetails.customer.contactEmail"></b-input>
+            </b-field>
+          </div>
+          <!-- error display -->
+          <div v-if="errors.noCustomerSelected != null">
+            <p class="has-text-danger has-text-weight-medium is-italic">
+              {{ errors.noCustomerSelected }}
+            </p>
+          </div>
+        </b-step-item>
+
+        <!-- If modal renders from new, step 3, otherwise step 2 -->
+        <!-- restrict ability to click on number icon if it's a new customer -->
+        <b-step-item
+          :step="isNewCall ? '3' : '2'"
+          label="Location"
+          :clickable="!isNewCall"
+        >
+          <!-- default state which shows a table of all issues -->
+          <div v-if="!isAddingNewIssue">
+            <b-table
+              :data="callDetails.issues.length == 0 ? [] : callDetails.issues"
+              :columns="issueColumns"
+              detailed
+              detail-key="location"
+              @details-open="(row, index) => closeAllOtherTableRows(row)"
+              :opened-detailed="openTableRow"
+            >
+              <template slot="detail" slot-scope="props">
+                <div class="columns">
+                  <div class="column is-10">
+                    <b-field label="Description of the problem"
+                      ><b-input
+                        v-model="props.row.problem"
+                        :disabled="
+                          editDetailIndex == detailOpenIndex ? false : true
+                        "
+                      ></b-input
+                    ></b-field>
+                  </div>
+                  <div class="column is-1">
+                    <b-button
+                      v-if="editDetailIndex == null"
+                      @click="editDetailIndex = detailOpenIndex"
+                      ><b-icon icon="pencil"></b-icon
+                    ></b-button>
+                    <b-button v-else @click="editDetailIndex = null"
+                      ><b-icon icon="check"></b-icon
+                    ></b-button>
+                  </div>
+                  <div class="column is-1">
+                    <b-button class="is-danger" @click="onDeleteIssue()"
+                      ><b-icon icon="close"></b-icon
+                    ></b-button>
+                  </div>
+                </div>
+              </template>
+              <template slot="empty">
+                <section class="section">
+                  <div class="content has-text-grey has-text-centered">
+                    <p>No Issues Added Yet</p>
+                  </div>
+                </section>
+              </template>
+            </b-table>
+            <br />
+            <!-- button to toggle issue creation form -->
+            <b-button
+              class="button is-info"
+              @click="isAddingNewIssue = !isAddingNewIssue"
+              >Add new Issue</b-button
+            >
+            <!-- error display -->
+            <div
+              class="container has-text-centered"
+              v-if="errors.issues != null"
+            >
+              <br />
+              <p class="has-text-weight-medium has-text-danger is-italic">
+                {{ errors.issues }}
+              </p>
+            </div>
+          </div>
+          <!-- issue creation form -->
+          <div v-else class="container">
+            <div class="columns is-multiline is-vcentered">
+              <div class="column is-8">
+                <!-- dropdown menu to select from an existing customer's location list -->
+                <b-field
+                  v-if="!isNewCustomer && !isAddingNewLocation"
+                  label="Gate location"
+                  :type="errors.locationToAdd == null ? '' : 'is-danger'"
+                  :message="errors.locationToAdd"
+                >
+                  <b-select v-model="locationToAdd" placeholder="Select one">
+                    <option
+                      v-for="(detail, index) in callDetails.customer
+                        .gateDetails"
+                      :value="detail.location"
+                      :key="index"
+                    >
+                      {{ detail.location }}
+                    </option>
+                  </b-select>
+                </b-field>
+                <!-- renders when user opts to add a new gate location to an existing customer -->
+                <b-field
+                  v-else
+                  label="Gate location"
+                  :type="errors.locationToAdd == null ? '' : 'is-danger'"
+                  :message="errors.locationToAdd"
+                >
+                  <b-input v-model="locationToAdd"></b-input>
+                </b-field>
+                <b-field label="Access Codes"><b-input></b-input></b-field>
+              </div>
+              <!-- button that toggles between dropdown list or text input -->
+              <div class="column is-pulled-right">
+                <b-button
+                  v-if="!isNewCustomer"
+                  @click="isAddingNewLocation = !isAddingNewLocation"
+                  :class="
+                    isAddingNewLocation ? 'button is-danger' : 'button is-info'
+                  "
+                  >{{
+                    !isAddingNewLocation ? "Add new location" : "Cancel"
+                  }}</b-button
+                >
+              </div>
+              <!-- description input -->
+              <div class="column is-12">
+                <b-field
+                  label="Description of the problem"
+                  :type="errors.descriptionToAdd == null ? '' : 'is-danger'"
+                  :message="errors.descriptionToAdd"
+                >
+                  <b-input
+                    v-model="descriptionToAdd"
+                    maxlength="300"
+                    type="textarea"
+                    placeholder="What's wrong?"
+                  ></b-input>
+                </b-field>
+              </div>
+            </div>
+          </div>
+        </b-step-item>
+
+        <!-- If modal renders from new, step 4, otherwise step 3 -->
+        <!-- restrict ability to click on number icon if it's a new customer -->
+        <b-step-item
+          :step="isNewCall ? '4' : '3'"
+          label="Tech"
+          :clickable="!isNewCall"
+        >
+          <!-- technician assignment dropdown -->
+          <b-field label="Assign to..." placeholder="Pick one">
+            <b-select v-model="callDetails.techAssigned">
+              <option
+                v-for="tech in technicians"
+                :value="tech.name"
+                :key="tech.id"
+              >
+                {{ tech.name }}
+              </option>
+            </b-select>
+          </b-field>
+        </b-step-item>
+      </b-steps>
+    </section>
+    <footer class="modal-card-foot">
+      <div>
+        <!-- closes the modal, does not save data -->
+        <b-button @click="closeModal">
+          Close
+        </b-button>
+      </div>
+      <div>
+        <!-- only renders when a user is adding a new issue to avoid button confusion -->
+        <b-button
+          @click="isAddingNewIssue = !isAddingNewIssue"
+          v-if="isAddingNewIssue"
+          >Cancel</b-button
+        >
+        <!-- hides when user is creating a new issue to avoid button confusion -->
+        <b-button
+          v-if="!isAddingNewIssue && activeStep > 0"
+          @click.prevent="activeStep--"
+          >Back</b-button
+        >
+        <!-- only renders when a user is adding a new issue to avoid button confusion -->
+        <b-button
+          class="button is-info"
+          v-if="isAddingNewIssue"
+          @click="updateIssue()"
+          >Add Issue</b-button
+        >
+        <!-- hides when user is creating a new issue to avoid button confusion -->
+        <b-button
+          v-if="
+            isNewCall
+              ? !isAddingNewIssue && activeStep < 3
+              : !isAddingNewIssue && activeStep < 2
+          "
+          class="button"
+          @click="validator()"
+          >Next</b-button
+        >
+        <!-- renders when on the last step. form submit button -->
+        <b-button
+          v-if="isNewCall ? activeStep == 3 : activeStep == 2"
+          :disabled="callDetails.techAssigned == null ? true : false"
+          type="is-success"
+          native-type="submit"
+          style="margin-right: 10px"
+          @click.prevent="isNewCall ? createCall() : updateCall()"
+          >{{ submitButtonLabel }}</b-button
+        >
+      </div>
+    </footer>
+  </div>
 </template>
 
 <script>

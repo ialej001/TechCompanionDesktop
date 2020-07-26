@@ -120,8 +120,7 @@ export default {
       callDetails: {},
       isNewCall: false,
       isNewCallModalActive: false,
-      callIndexToBeUpdated: null,
-      callIdToBeRemoved: ""
+      callIndexToBeUpdated: null
     };
   },
   methods: {

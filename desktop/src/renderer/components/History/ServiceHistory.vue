@@ -82,7 +82,11 @@
               </div>
               <div class="card-content">
                 <div class="content">
-                  {{ issue.resolution }}
+                  Resolution:
+                  <pre>{{ issue.resolution }}</pre>
+                  <br />
+                  Original Problem:
+                  <pre>{{ issue.problem }}</pre>
                 </div>
               </div>
             </b-collapse>

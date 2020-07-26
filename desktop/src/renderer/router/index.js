@@ -30,7 +30,7 @@ export default new Router({
     {
       path: "/Maintenance",
       name: "Maintenance",
-      component: require("@/components/Maintenance.vue").default
+      component: require("@/components/Maintenance/Maintenance.vue").default
     },
     {
       path: "/Users",
