@@ -63,7 +63,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.13.0",
     "@fortawesome/vue-fontawesome": "^0.1.9",
     "@mdi/font": "^5.1.45",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "buefy": "^0.8.17",
     "fontawesome": "^5.6.3",
     "vee-validate": "^2.2.15",
